@@ -8,3 +8,10 @@ Tokyo Institute of Technology 2022-1Q
 
 ## Environment
 
+## Useful Tools
+
+- [shell.how?](https://www.shell.how/)  
+Explain shell commands
+
+- [Fig](https://fig.io/)   
+Fig adds IDE-style autocomplete to your existing terminal. Move faster with Fig.
