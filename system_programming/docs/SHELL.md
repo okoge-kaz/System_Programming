@@ -69,8 +69,53 @@ $ echo 'THE ANSWER IS $NUM'          # THE ANSWER IS $NUM (展開されない）
 $ echo 'Hello!!'                     # ""だと、 !! が直前のコマンドに置き換わる
 ```
 
+#### 位置パラメータ
+スクリプト実行時に引数として渡された内容は、位置パラメータと呼ばれる特殊変数に保持される。これらはスクリプト中では、`$1`～`$9`で表わせる。  
+10番目以降の位置パラメータは、`${10}`のように記述する。   
+なお、位置パラメータは関数への引数を展開する場合にも使う。
+  
+```shell
+$ piyopiyo.sh "hoge" "fuga" 3 4 5 6 7 8 9 ten eleven
+# $1    => hoge
+# ${10} => ten
+```
+**1-index**であることに注意
 
-## 1-unix
+#### 位置パラメータ発展
+
+位置パラメータを集合的に扱う場合は、`$*`, `$@`, `"$@"`を利用する。   
+クォーテートしない`$@` は `$*` と同じだ。なので実質`$*`と`"$@"`を使い分ければ良い。
+
+```sample.sh
+echo '--- $* ---'; for P in $*; do echo $P; done
+echo '--- $@ ---'; for P in $@; do echo $P; done        # $* と同じ
+echo '--- "$@" ---'; for P in "$@"; do echo $P; done
+```
+
+```shell
+$ ./sample.sh "1 2" "hoge fuga"
+--- $* ---
+1
+2
+hoge
+fuga
+--- $@ ---
+1
+2
+hoge
+fuga
+--- "$@" ---
+1 2
+hoge fuga
+```
+
+### shellの変数展開
+
+[詳細](https://qiita.com/bsdhack/items/597eb7daee4a8b3276ba)
+
+
+
+## 1-unix のまとめ
 
 `$ echo file.{src,dst}`   
 `> file.src file.dst`
