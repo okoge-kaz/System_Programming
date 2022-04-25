@@ -35,21 +35,45 @@ int do_cat(int size, char **args) {
             }
 
             int n;
-            while((n = read(file_discripter, buffer, buffer_size)) > 0){
-                if(write(STDOUT_FILENO, buffer, n) != n){
+            while ((n = read(file_discripter, buffer, buffer_size)) > 0) {
+                if (write(STDOUT_FILENO, buffer, n) != n) {
                     perror("write");
                     exit(1);
                 }
             };
 
             free(buffer);
-            if (close(file_discripter)) {
+            if (close(file_discripter) == -1) {
                 perror("close");
                 exit(1);
             };
         } else {
             /* -l available (Task 2); implement here */
+            FILE *file_pointer = fopen(fname, "r");
+            if (file_pointer == NULL) {
+                perror("fopen");
+                exit(1);
+            }
 
+            char *buffer = malloc(buffer_size);
+            if (buffer == NULL) {
+                perror("malloc");
+                exit(1);
+            }
+
+            int n;
+            while ((n = fread(buffer, sizeof(char), buffer_size, file_pointer)) > 0) {
+                if (fwrite(buffer, sizeof(char), n, stdout) != n) {
+                    perror("fwrite");
+                    exit(1);
+                }
+            };
+
+            free(buffer);
+            if (fclose(file_pointer) == EOF) {
+                perror("fclose");
+                exit(1);
+            };
         }
     }
     return 0;
