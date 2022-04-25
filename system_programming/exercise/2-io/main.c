@@ -36,7 +36,10 @@ int do_cat(int size, char **args) {
 
             int n;
             while((n = read(file_discripter, buffer, buffer_size)) > 0){
-                write(STDOUT_FILENO, buffer, n);
+                if(write(STDOUT_FILENO, buffer, n) != n){
+                    perror("write");
+                    exit(1);
+                }
             };
 
             free(buffer);
@@ -46,6 +49,7 @@ int do_cat(int size, char **args) {
             };
         } else {
             /* -l available (Task 2); implement here */
+
         }
     }
     return 0;
