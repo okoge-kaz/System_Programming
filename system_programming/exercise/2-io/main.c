@@ -25,13 +25,19 @@ int do_cat(int size, char **args) {
                 char buf[buffer_size];
                 int n;
                 while ((n = fread(buf, 1, buffer_size, stdin)) > 0) {
-                    write(STDOUT_FILENO, buf, n);
+                    if(fwrite(buf, 1, n, stdout) != n) {
+                        perror("fwrite");
+                        exit(1);
+                    }
                 }
             } else {
                 char buf[buffer_size];
                 int n;
                 while ((n = read(STDIN_FILENO, buf, buffer_size)) > 0) {
-                    write(STDOUT_FILENO, buf, n);
+                    if(write(STDOUT_FILENO, buf, n) != n){
+                        perror("write");
+                        exit(1);
+                    }
                 }
             }
         } else {
