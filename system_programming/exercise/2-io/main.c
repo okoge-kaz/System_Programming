@@ -76,6 +76,24 @@ int do_cat(int size, char **args) {
             };
         }
     }
+    // すでに stdinに読み込まれているデータを stdout に書き出す処理が必要
+    if(size == 0){
+        char *buffer = malloc(buffer_size);
+        if (buffer == NULL) {
+            perror("malloc");
+            exit(1);
+        }
+
+        int n;
+        while ((n = read(STDIN_FILENO, buffer, buffer_size)) > 0) {
+            if (write(STDOUT_FILENO, buffer, n) != n) {
+                perror("write");
+                exit(1);
+            }
+        };
+
+        free(buffer);
+    }
     return 0;
 }
 
