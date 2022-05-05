@@ -1,0 +1,1 @@
+./fd -i < t/hello.txt | ./fd -i | ./fd -i | ./fd -i

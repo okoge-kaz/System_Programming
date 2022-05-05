@@ -1,0 +1,4 @@
+echo foofoo > .test.tmp.txt
+echo bar > .test.tmp.txt
+cat .test.tmp.txt
+sh -c 'rm .test.tmp.txt || echo ERROR'

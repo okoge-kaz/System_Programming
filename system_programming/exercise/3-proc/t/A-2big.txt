@@ -1,0 +1,1 @@
+cat t/services.txt | grep '^#' | wc -l

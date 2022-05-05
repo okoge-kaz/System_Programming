@@ -1,0 +1,4 @@
+echo foobar > .test.tmp.txt
+echo baz >> .test.tmp.txt
+cat .test.tmp.txt
+sh -c 'rm .test.tmp.txt || echo ERROR'

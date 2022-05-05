@@ -1,0 +1,3 @@
+true | sh -c "echo foo > .test.tmp.txt"
+cat .test.tmp.txt
+sh -c 'rm .test.tmp.txt || echo ERROR'

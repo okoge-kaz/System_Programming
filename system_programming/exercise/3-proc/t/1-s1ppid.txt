@@ -1,0 +1,6 @@
+sh -c 'echo $PPID  > .test.tmp.txt'
+sh -c 'echo $PPID >> .test.tmp.txt'
+sh -c 'echo $PPID >> .test.tmp.txt'
+sh -c  'cat .test.tmp.txt | wc -l'
+sh -c 'uniq .test.tmp.txt | wc -l'
+sh -c 'rm .test.tmp.txt || echo ERROR'

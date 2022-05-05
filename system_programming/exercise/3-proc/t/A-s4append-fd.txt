@@ -1,0 +1,4 @@
+./fd | ./fd -i | ./fd -i > .test.tmp.txt
+./fd | ./fd -i | ./fd -i >> .test.tmp.txt
+cat .test.tmp.txt
+sh -c 'rm .test.tmp.txt || echo ERROR'

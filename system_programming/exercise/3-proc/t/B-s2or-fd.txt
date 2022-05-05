@@ -1,0 +1,4 @@
+false || ./fd | ./fd -i | ./fd -i > .test.tmp1.txt
+true || ./fd | ./fd -i | ./fd -i > .test.tmp2.txt
+cat .test.tmp1.txt .test.tmp2.txt
+sh -c 'rm .test.tmp*.txt || echo ERROR'

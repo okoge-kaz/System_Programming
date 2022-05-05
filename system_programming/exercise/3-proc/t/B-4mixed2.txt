@@ -1,0 +1,4 @@
+true  || echo failed1 && echo succeeded1
+false || echo failed2 && echo succeeded2
+true  && echo succeeded3 || echo failed3
+false && echo succeeded4 || echo failed4

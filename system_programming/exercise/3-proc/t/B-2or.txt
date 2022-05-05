@@ -1,0 +1,2 @@
+true || echo succeeded
+false || echo failed

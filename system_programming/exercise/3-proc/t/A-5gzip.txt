@@ -1,0 +1,1 @@
+echo feebdaed | gzip -c | gunzip -c | gzip -c | gunzip -c | rev

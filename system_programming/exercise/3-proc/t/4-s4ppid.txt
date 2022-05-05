@@ -1,0 +1,7 @@
+sh -c 'echo $PPID > .test.tmp1.txt'
+sh -c 'rev ; echo $PPID >> .test.tmp1.txt' < t/hello.txt
+sh -c 'rev ; echo $PPID >> .test.tmp1.txt' < t/hello.txt > .test.tmp2.txt
+sh -c  'cat .test.tmp1.txt | wc -l'
+sh -c 'uniq .test.tmp1.txt | wc -l'
+sh -c 'rm .test.tmp1.txt || echo ERROR'
+sh -c 'rm .test.tmp2.txt || echo ERROR'

@@ -1,0 +1,1 @@
+cat t/hello.txt | grep '^#' | wc -l
