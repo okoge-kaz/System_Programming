@@ -47,19 +47,19 @@ int invoke_node(node_t *node) {
         /* Simple command execution (Task 1) */
 
         // char *argv[] = {"whoami", NULL};
-        pid_t pid = fork();
-        if(pid == 0) {
+        pid_t pid1 = fork();
+        if(pid1 == 0) {
             if(execvp(node->argv[0], node->argv) == -1) {
                 perror("execvp");
                 exit(errno);
             }
             execvp(node->argv[0], node->argv);
-        } else if(pid == -1) {
+        } else if(pid1 == -1) {
             perror("fork");
             return errno;
         } else {
             int status;
-            waitpid(pid, &status, 0);
+            waitpid(pid1, &status, 0);
             return status;
         }
         break;
@@ -86,6 +86,24 @@ int invoke_node(node_t *node) {
         LOG("node->rhs: %s", inspect_node(node->rhs));
 
         /* Sequential execution (Task 2) */
+        pid_t pid2 = fork();
+        if(pid2 == 0) {
+            int status = invoke_node(node->lhs);
+            if(status != 0) {
+                exit(status);
+            }
+            status = invoke_node(node->rhs);
+            if(status != 0) {
+                exit(status);
+            }
+        } else if(pid2 == -1) {
+            perror("fork");
+            return errno;
+        } else {
+            int status;
+            waitpid(pid2, &status, 0);
+            return status;
+        }
 
         break;
 
