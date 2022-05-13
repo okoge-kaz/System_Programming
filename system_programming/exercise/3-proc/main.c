@@ -47,8 +47,21 @@ int invoke_node(node_t *node) {
         /* Simple command execution (Task 1) */
 
         // char *argv[] = {"whoami", NULL};
-        // execvp("whoami", argv);
-
+        pid_t pid = fork();
+        if(pid == 0) {
+            if(execvp(node->argv[0], node->argv) == -1) {
+                perror("execvp");
+                exit(errno);
+            }
+            execvp(node->argv[0], node->argv);
+        } else if(pid == -1) {
+            perror("fork");
+            return errno;
+        } else {
+            int status;
+            waitpid(pid, &status, 0);
+            return status;
+        }
         break;
 
     case N_PIPE: /* foo | bar */
