@@ -1,4 +1,5 @@
 #include "main.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -22,7 +23,6 @@ int prompt = 1;
 
 char *cmdname;
 
-
 /** Run a node and obtain an exit status. */
 int invoke_node(node_t *node) {
     /* You can modify any part of the body of this function.
@@ -31,111 +31,111 @@ int invoke_node(node_t *node) {
     LOG("Invoke: %s", inspect_node(node));
 
     switch (node->type) {
-    case N_COMMAND:
-        /* change directory (cd with no argument is not supported.) */
-        if (strcmp(node->argv[0], "cd") == 0) {
-            if (node->argv[1] == NULL) {
-                return 0; // do nothing
-            } else if (chdir(node->argv[1]) == -1) {
-                perror("cd");
-                return errno;
-            } else {
-                return 0;
+        case N_COMMAND:
+            /* change directory (cd with no argument is not supported.) */
+            if (strcmp(node->argv[0], "cd") == 0) {
+                if (node->argv[1] == NULL) {
+                    return 0;  // do nothing
+                } else if (chdir(node->argv[1]) == -1) {
+                    perror("cd");
+                    return errno;
+                } else {
+                    return 0;
+                }
             }
-        }
 
-        /* Simple command execution (Task 1) */
+            /* Simple command execution (Task 1) */
 
-        // char *argv[] = {"whoami", NULL};
-        pid_t pid1 = fork();
-        if(pid1 == 0) {
-            if(execvp(node->argv[0], node->argv) == -1) {
-                perror("execvp");
-                exit(errno);
-            }
-            execvp(node->argv[0], node->argv);
-        } else if(pid1 == -1) {
-            perror("fork");
-            return errno;
-        } else {
-            int status;
-            waitpid(pid1, &status, 0);
-            return status;
-        }
-        break;
-
-    case N_PIPE: /* foo | bar */
-        LOG("node->lhs: %s", inspect_node(node->lhs));
-        LOG("node->rhs: %s", inspect_node(node->rhs));
-
-        /* Pipe execution (Tasks 3 and A) */
-
-        break;
-
-    case N_REDIRECT_IN:     /* foo < bar */
-    case N_REDIRECT_OUT:    /* foo > bar */
-    case N_REDIRECT_APPEND: /* foo >> bar */
-        LOG("node->filename: %s", node->filename);
-
-        /* Redirection (Task 4) */
-
-        break;
-
-    case N_SEQUENCE: /* foo ; bar */
-        LOG("node->lhs: %s", inspect_node(node->lhs));
-        LOG("node->rhs: %s", inspect_node(node->rhs));
-
-        /* Sequential execution (Task 2) */
-        pid_t pid2_1 = fork();
-        if(pid2_1 == 0) {
-            if(execvp(node->lhs->argv[0], node->lhs->argv) == -1) {
-                perror("execvp");
-                exit(errno);
-            }
-            execvp(node->lhs->argv[0], node->lhs->argv);
-        } else if(pid2_1 == -1) {
-            perror("fork");
-            return errno;
-        } else {
-            int status;
-            waitpid(pid2_1, &status, 0);
-            
-            pid_t pid2_2 = fork();
-            if(pid2_2 == 0) {
-                if(execvp(node->rhs->argv[0], node->rhs->argv) == -1) {
+            // char *argv[] = {"whoami", NULL};
+            pid_t pid1 = fork();
+            if (pid1 == 0) {
+                if (execvp(node->argv[0], node->argv) == -1) {
                     perror("execvp");
                     exit(errno);
                 }
-                execvp(node->rhs->argv[0], node->rhs->argv);
-            } else if(pid2_2 == -1) {
+                execvp(node->argv[0], node->argv);
+            } else if (pid1 == -1) {
                 perror("fork");
                 return errno;
             } else {
-                waitpid(pid2_2, &status, 0);
+                int status;
+                waitpid(pid1, &status, 0);
                 return status;
             }
-        }
+            break;
 
-        break;
+        case N_PIPE: /* foo | bar */
+            LOG("node->lhs: %s", inspect_node(node->lhs));
+            LOG("node->rhs: %s", inspect_node(node->rhs));
 
-    case N_AND: /* foo && bar */
-    case N_OR:  /* foo || bar */
-        LOG("node->lhs: %s", inspect_node(node->lhs));
-        LOG("node->rhs: %s", inspect_node(node->rhs));
+            /* Pipe execution (Tasks 3 and A) */
 
-        /* Branching (Task B) */
+            break;
 
-        break;
+        case N_REDIRECT_IN:     /* foo < bar */
+        case N_REDIRECT_OUT:    /* foo > bar */
+        case N_REDIRECT_APPEND: /* foo >> bar */
+            LOG("node->filename: %s", node->filename);
 
-    case N_SUBSHELL: /* ( foo... ) */
-        LOG("node->lhs: %s", inspect_node(node->lhs));
+            /* Redirection (Task 4) */
 
-        /* Subshell execution (Task C) */
+            break;
 
-        break;
+        case N_SEQUENCE: /* foo ; bar */
+            LOG("node->lhs: %s", inspect_node(node->lhs));
+            LOG("node->rhs: %s", inspect_node(node->rhs));
 
-    default:
-        assert(false);
+            /* Sequential execution (Task 2) */
+            pid_t pid2_1 = fork();
+            if (pid2_1 == 0) {
+                if (execvp(node->lhs->argv[0], node->lhs->argv) == -1) {
+                    perror("execvp");
+                    exit(errno);
+                }
+                execvp(node->lhs->argv[0], node->lhs->argv);
+            } else if (pid2_1 == -1) {
+                perror("fork");
+                return errno;
+            } else {
+                int status;
+                waitpid(pid2_1, &status, 0);
+
+                pid_t pid2_2 = fork();
+                if (pid2_2 == 0) {
+                    if (execvp(node->rhs->argv[0], node->rhs->argv) == -1) {
+                        perror("execvp");
+                        exit(errno);
+                    }
+                    execvp(node->rhs->argv[0], node->rhs->argv);
+                } else if (pid2_2 == -1) {
+                    perror("fork");
+                    return errno;
+                } else {
+                    waitpid(pid2_2, &status, 0);
+                    return status;
+                }
+            }
+
+            break;
+
+        case N_AND: /* foo && bar */
+        case N_OR:  /* foo || bar */
+            LOG("node->lhs: %s", inspect_node(node->lhs));
+            LOG("node->rhs: %s", inspect_node(node->rhs));
+
+            /* Branching (Task B) */
+
+            break;
+
+        case N_SUBSHELL: /* ( foo... ) */
+            LOG("node->lhs: %s", inspect_node(node->lhs));
+
+            /* Subshell execution (Task C) */
+
+            break;
+
+        default:
+            assert(false);
     }
     return 0;
 }
@@ -144,16 +144,16 @@ void parse_options(int argc, char **argv) {
     int opt;
     while ((opt = getopt(argc, argv, "qp")) != -1) {
         switch (opt) {
-        case 'q': /* -q: quiet */
-            l_set_quiet(1);
-            break;
-        case 'p': /* -p: no-prompt */
-            prompt = 0;
-            break;
-        case '?':
-        default:
-            fprintf(stderr, "Usage: %s [-q] [-p] [cmdline ...]\n", cmdname);
-            exit(EXIT_FAILURE);
+            case 'q': /* -q: quiet */
+                l_set_quiet(1);
+                break;
+            case 'p': /* -p: no-prompt */
+                prompt = 0;
+                break;
+            case '?':
+            default:
+                fprintf(stderr, "Usage: %s [-q] [-p] [cmdline ...]\n", cmdname);
+                exit(EXIT_FAILURE);
         }
     }
 }
