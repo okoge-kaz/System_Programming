@@ -51,11 +51,11 @@ int invoke_node(node_t *node) {
             fflush(stdout);
             pid_t pid1 = fork();
             if (pid1 == 0) {
-                if (execvp(node->argv[0], node->argv) == -1) {
+                status1 = execvp(node->argv[0], node->argv);
+                if(status1 == -1){
                     perror("execvp");
                     exit(errno);
                 }
-                status1 = execvp(node->argv[0], node->argv);
                 // exit(status1);
             } else if (pid1 == -1) {
                 perror("fork");
@@ -71,7 +71,7 @@ int invoke_node(node_t *node) {
             LOG("node->rhs: %s", inspect_node(node->rhs));
 
             /* Pipe execution (Tasks 3 and A) */
-
+            
             break;
 
         case N_REDIRECT_IN:     /* foo < bar */
@@ -90,9 +90,8 @@ int invoke_node(node_t *node) {
             /* Sequential execution (Task 2) */
             int status2;
             status2 = invoke_node(node->lhs);
-            if (status2 == 0) {
-                status2 = invoke_node(node->rhs);
-            }
+            status2 = invoke_node(node->rhs);
+
             return status2;
 
             break;
