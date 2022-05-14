@@ -56,7 +56,7 @@ int invoke_node(node_t *node) {
                     exit(errno);
                 }
                 status1 = execvp(node->argv[0], node->argv);
-                exit(status1);
+                // exit(status1);
             } else if (pid1 == -1) {
                 perror("fork");
                 return errno;
@@ -97,7 +97,7 @@ int invoke_node(node_t *node) {
                     exit(errno);
                 }
                 status2_1 = execvp(node->lhs->argv[0], node->lhs->argv);
-                exit(status2_1);
+                // exit(status2_1);
             }
             else if (pid2_1 == -1) {
                 perror("fork");
@@ -108,23 +108,8 @@ int invoke_node(node_t *node) {
                 
                 int status2_2;
                 fflush(stdout);
-                pid_t pid2_2 = fork();
-                if (pid2_2 == 0) {
-                    if (execvp(node->rhs->argv[0], node->rhs->argv) == -1) {
-                        perror("execvp");
-                        exit(errno);
-                    }
-                    status2_2 = execvp(node->rhs->argv[0], node->rhs->argv);
-                    exit(status2_2);
-                }
-                else if (pid2_2 == -1) {
-                    perror("fork");
-                    return errno;
-                }
-                else {
-                    waitpid(pid2_2, &status2_2, 0);
-                    return status2_2;
-                }
+                status2_2 = invoke_node(node->rhs);
+                return status2_2;
             }
 
             break;
