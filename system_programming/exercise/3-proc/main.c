@@ -82,28 +82,30 @@ int invoke_node(node_t *node) {
             pid_t pid3 = fork();
             if(pid3 == 0){
                 // child process
-                close(file_discriptor[0]);
                 dup2(file_discriptor[1], 1);
+                close(file_discriptor[0]);
                 close(file_discriptor[1]);
-                status3_2 = execvp(node->lhs->argv[0], node->lhs->argv);
+                status3_2 = invoke_node(node->lhs);
                 if(status3_2 == -1){
-                    perror("execvp");
+                    perror("invoke_node");
                     exit(errno);
                 }
+                exit(status3_2);
             } else if(pid3 == -1){
                 perror("fork");
                 return errno;
             } else {
                 // parent process
                 waitpid(pid3, &status3_2, 0);
-                close(file_discriptor[1]);
                 dup2(file_discriptor[0], 0);
                 close(file_discriptor[0]);
-                int status3_3 = execvp(node->rhs->argv[0], node->rhs->argv);
+                close(file_discriptor[1]);
+                int status3_3 = invoke_node(node->rhs);
                 if(status3_3 == -1){
-                    perror("execvp");
+                    perror("invoke_node");
                     exit(errno);
                 }
+                return status3_3;
             }
             break;
 
