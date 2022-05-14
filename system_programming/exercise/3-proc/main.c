@@ -139,11 +139,25 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 0);
                 close(fd);
-                status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
-                if (status4_IN == -1) {
-                    perror("execvp");
-                    exit(errno);
+                if(node->lhs->lhs == NULL) {
+                    status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
+                    if (status4_IN == -1) {
+                        perror("execvp");
+                        exit(errno);
+                    }
+                } else {
+                    status4_IN = invoke_node(node->lhs);
+                    if (status4_IN == -1) {
+                        perror("invoke_node");
+                        exit(errno);
+                    }
+                    exit(status4_IN);
                 }
+                // status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
+                // if (status4_IN == -1) {
+                //     perror("execvp");
+                //     exit(errno);
+                // }
                 // status4_IN = invoke_node(node->lhs);
                 // if (status4_IN == -1) {
                 //     perror("invoke_node");
@@ -173,11 +187,25 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 1);
                 close(fd);
-                status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
-                if (status4_OUT == -1) {
-                    perror("execvp");
-                    exit(errno);
+                if(node->lhs->lhs == NULL) {
+                    status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
+                    if (status4_OUT == -1) {
+                        perror("execvp");
+                        exit(errno);
+                    }
+                } else {
+                    status4_OUT = invoke_node(node->lhs);
+                    if (status4_OUT == -1) {
+                        perror("invoke_node");
+                        exit(errno);
+                    }
+                    exit(status4_OUT);
                 }
+                // status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
+                // if (status4_OUT == -1) {
+                //     perror("execvp");
+                //     exit(errno);
+                // }
                 // status4_OUT = invoke_node(node->lhs);
                 // if (status4_OUT == -1) {
                 //     perror("invoke_node");
@@ -210,11 +238,25 @@ int invoke_node(node_t *node) {
                 dup2(fd, 1);
                 close(fd);
 
-                status4_APPEND = execvp(node->argv[0], node->argv);
-                if (status4_APPEND == -1) {
-                    perror("execvp");
-                    exit(errno);
+                if(node->lhs->lhs == NULL) {
+                    status4_APPEND = execvp(node->lhs->argv[0], node->lhs->argv);
+                    if (status4_APPEND == -1) {
+                        perror("execvp");
+                        exit(errno);
+                    }
+                } else {
+                    status4_APPEND = invoke_node(node->lhs);
+                    if (status4_APPEND == -1) {
+                        perror("invoke_node");
+                        exit(errno);
+                    }
+                    exit(status4_APPEND);
                 }
+                // status4_APPEND = execvp(node->argv[0], node->argv);
+                // if (status4_APPEND == -1) {
+                //     perror("execvp");
+                //     exit(errno);
+                // }
                 // status4_APPEND = invoke_node(node->lhs);
                 // if (status4_APPEND == -1) {
                 //     perror("invoke_node");
