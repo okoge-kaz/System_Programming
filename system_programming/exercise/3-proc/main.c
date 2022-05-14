@@ -126,6 +126,8 @@ int invoke_node(node_t *node) {
 
         case N_REDIRECT_IN: /* foo < bar */
             LOG("node->filename: %s", node->filename);
+            LOG("node->lhs: %s", inspect_node(node->lhs));
+
             int status4_IN;
             fflush(stdout);
             pid_t pid4_IN = fork();
@@ -142,6 +144,12 @@ int invoke_node(node_t *node) {
                     perror("execvp");
                     exit(errno);
                 }
+                // status4_IN = invoke_node(node->lhs);
+                // if (status4_IN == -1) {
+                //     perror("invoke_node");
+                //     exit(errno);
+                // }
+                // exit(status4_IN);
             } else if (pid4_IN == -1) {
                 perror("fork");
                 return errno;
@@ -152,12 +160,13 @@ int invoke_node(node_t *node) {
             break;
         case N_REDIRECT_OUT: /* foo > bar */
             LOG("node->filename: %s", node->filename);
+            LOG("node->lhs: %s", inspect_node(node->lhs));
 
             int status4_OUT;
             fflush(stdout);
             pid_t pid4_OUT = fork();
             if (pid4_OUT == 0) {
-                int fd = open(node->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                int fd = open(node->filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                 if (fd == -1) {
                     perror("open");
                     exit(errno);
@@ -169,6 +178,12 @@ int invoke_node(node_t *node) {
                     perror("execvp");
                     exit(errno);
                 }
+                // status4_OUT = invoke_node(node->lhs);
+                // if (status4_OUT == -1) {
+                //     perror("invoke_node");
+                //     exit(errno);
+                // }
+                // exit(status4_OUT);
             } else if (pid4_OUT == -1) {
                 perror("fork");
                 return errno;
@@ -180,13 +195,14 @@ int invoke_node(node_t *node) {
 
         case N_REDIRECT_APPEND: /* foo >> bar */
             LOG("node->filename: %s", node->filename);
+            LOG("node->lhs: %s", inspect_node(node->lhs));
 
             /* Redirection (Task 4) */
-            int status4;
+            int status4_APPEND;
             fflush(stdout);
             pid_t pid4 = fork();
             if (pid4 == 0) {
-                int fd = open(node->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+                int fd = open(node->filename, O_WRONLY | O_CREAT | O_APPEND, 0666);
                 if (fd == -1) {
                     perror("open");
                     exit(errno);
@@ -194,17 +210,23 @@ int invoke_node(node_t *node) {
                 dup2(fd, 1);
                 close(fd);
 
-                status4 = execvp(node->argv[0], node->argv);
-                if (status4 == -1) {
+                status4_APPEND = execvp(node->argv[0], node->argv);
+                if (status4_APPEND == -1) {
                     perror("execvp");
                     exit(errno);
                 }
+                // status4_APPEND = invoke_node(node->lhs);
+                // if (status4_APPEND == -1) {
+                //     perror("invoke_node");
+                //     exit(errno);
+                // }
+                // exit(status4_APPEND);
             } else if (pid4 == -1) {
                 perror("fork");
                 return errno;
             } else {
-                waitpid(pid4, &status4, 0);
-                return status4;
+                waitpid(pid4, &status4_APPEND, 0);
+                return status4_APPEND;
             }
             break;
 
