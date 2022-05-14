@@ -88,29 +88,12 @@ int invoke_node(node_t *node) {
             LOG("node->rhs: %s", inspect_node(node->rhs));
 
             /* Sequential execution (Task 2) */
-            int status2_1;
-            fflush(stdout);
-            pid_t pid2_1 = fork();
-            if (pid2_1 == 0) {
-                if (execvp(node->lhs->argv[0], node->lhs->argv) == -1) {
-                    perror("execvp");
-                    exit(errno);
-                }
-                status2_1 = execvp(node->lhs->argv[0], node->lhs->argv);
-                // exit(status2_1);
+            int status2;
+            status2 = invoke_node(node->lhs);
+            if (status2 == 0) {
+                status2 = invoke_node(node->rhs);
             }
-            else if (pid2_1 == -1) {
-                perror("fork");
-                return errno;
-            }
-            else {
-                waitpid(pid2_1, &status2_1, 0);
-                
-                int status2_2;
-                fflush(stdout);
-                status2_2 = invoke_node(node->rhs);
-                return status2_2;
-            }
+            return status2;
 
             break;
 
