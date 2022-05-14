@@ -95,7 +95,8 @@ int invoke_node(node_t *node) {
                 return errno;
             } else {
                 // parent process
-                waitpid(pid3_1, &status3_1, 0);
+                // waitpid(pid3_1, &status3_1, 0);
+                // ここでwaitpidしない理由が不明
 
                 fflush(stdout);
                 pid_t pid3_2 = fork();
@@ -116,19 +117,11 @@ int invoke_node(node_t *node) {
                 } else {
                     close(file_discriptor[0]);
                     close(file_discriptor[1]);
+
+                    waitpid(pid3_1, &status3_1, 0);
                     waitpid(pid3_2, &status3_2, 0);
                     return status3_2;
                 }
-                // waitpid(pid3, &status3_2, 0);
-                // dup2(file_discriptor[0], 0);
-                // close(file_discriptor[0]);
-                // close(file_discriptor[1]);
-                // int status3_3 = invoke_node(node->rhs);
-                // if(status3_3 == -1){
-                //     perror("invoke_node");
-                //     exit(errno);
-                // }
-                // return status3_3;
             }
             break;
 
