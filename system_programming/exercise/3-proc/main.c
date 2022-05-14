@@ -85,11 +85,24 @@ int invoke_node(node_t *node) {
                 dup2(file_discriptor[1], 1);
                 close(file_discriptor[0]);
                 close(file_discriptor[1]);
-                status3_2 = execvp(node->lhs->argv[0], node->lhs->argv);
-                if (status3_2 == -1) {
-                    perror("execvp");
-                    exit(errno);
+                if (node->lhs->lhs == NULL) {
+                    status3_2 = execvp(node->lhs->argv[0], node->lhs->argv);
+                    if (status3_2 == -1) {
+                        perror("execvp");
+                        exit(errno);
+                    }
+                } else {
+                    status3_2 = invoke_node(node->lhs);
+                    if (status3_2 != 0) {
+                        exit(status3_2);
+                    }
+                    exit(status3_2);
                 }
+                // status3_2 = execvp(node->lhs->argv[0], node->lhs->argv);
+                // if (status3_2 == -1) {
+                //     perror("execvp");
+                //     exit(errno);
+                // }
             } else if (pid3_1 == -1) {
                 perror("fork");
                 return errno;
@@ -105,7 +118,7 @@ int invoke_node(node_t *node) {
                     dup2(file_discriptor[0], 0);
                     close(file_discriptor[0]);
                     close(file_discriptor[1]);
-                    if(node->rhs->lhs == NULL){
+                    if (node->rhs->lhs == NULL) {
                         status3_2 = execvp(node->rhs->argv[0], node->rhs->argv);
                         if (status3_2 == -1) {
                             perror("execvp");
@@ -153,7 +166,7 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 0);
                 close(fd);
-                if(node->lhs->lhs == NULL) {
+                if (node->lhs->lhs == NULL) {
                     status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
                     if (status4_IN == -1) {
                         perror("execvp");
@@ -201,7 +214,7 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 1);
                 close(fd);
-                if(node->lhs->lhs == NULL) {
+                if (node->lhs->lhs == NULL) {
                     status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
                     if (status4_OUT == -1) {
                         perror("execvp");
@@ -252,7 +265,7 @@ int invoke_node(node_t *node) {
                 dup2(fd, 1);
                 close(fd);
 
-                if(node->lhs->lhs == NULL) {
+                if (node->lhs->lhs == NULL) {
                     status4_APPEND = execvp(node->lhs->argv[0], node->lhs->argv);
                     if (status4_APPEND == -1) {
                         perror("execvp");
