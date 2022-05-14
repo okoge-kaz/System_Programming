@@ -47,7 +47,7 @@ int invoke_node(node_t *node) {
             /* Simple command execution (Task 1) */
 
             // char *argv[] = {"whoami", NULL};
-            int status;
+            int status1;
             fflush(stdout);
             pid_t pid1 = fork();
             if (pid1 == 0) {
@@ -55,13 +55,14 @@ int invoke_node(node_t *node) {
                     perror("execvp");
                     exit(errno);
                 }
-                status = execvp(node->argv[0], node->argv);
-                exit(status);
+                status1 = execvp(node->argv[0], node->argv);
+                exit(status1);
             } else if (pid1 == -1) {
                 perror("fork");
                 return errno;
             } else {
-                waitpid(pid1, &status, 0);
+                waitpid(pid1, &status1, 0);
+                return status1;
             }
             break;
 
@@ -87,6 +88,7 @@ int invoke_node(node_t *node) {
             LOG("node->rhs: %s", inspect_node(node->rhs));
 
             /* Sequential execution (Task 2) */
+            int status2_1;
             fflush(stdout);
             pid_t pid2_1 = fork();
             if (pid2_1 == 0) {
@@ -94,24 +96,34 @@ int invoke_node(node_t *node) {
                     perror("execvp");
                     exit(errno);
                 }
-                execvp(node->lhs->argv[0], node->lhs->argv);
-            } else if (pid2_1 == -1) {
+                status2_1 = execvp(node->lhs->argv[0], node->lhs->argv);
+                exit(status2_1);
+            }
+            else if (pid2_1 == -1) {
                 perror("fork");
                 return errno;
-            } else {
-                int status;
-                waitpid(pid2_1, &status, 0);
-
+            }
+            else {
+                waitpid(pid2_1, &status2_1, 0);
+                
+                int status2_2;
                 fflush(stdout);
                 pid_t pid2_2 = fork();
                 if (pid2_2 == 0) {
-                    invoke_node(node->rhs);
-                } else if (pid2_2 == -1) {
+                    if (execvp(node->rhs->argv[0], node->rhs->argv) == -1) {
+                        perror("execvp");
+                        exit(errno);
+                    }
+                    status2_2 = execvp(node->rhs->argv[0], node->rhs->argv);
+                    exit(status2_2);
+                }
+                else if (pid2_2 == -1) {
                     perror("fork");
                     return errno;
-                } else {
-                    waitpid(pid2_2, &status, 0);
-                    return status;
+                }
+                else {
+                    waitpid(pid2_2, &status2_2, 0);
+                    return status2_2;
                 }
             }
 
