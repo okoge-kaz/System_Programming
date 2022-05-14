@@ -52,7 +52,7 @@ int invoke_node(node_t *node) {
             pid_t pid1 = fork();
             if (pid1 == 0) {
                 status1 = execvp(node->argv[0], node->argv);
-                if(status1 == -1){
+                if (status1 == -1) {
                     perror("execvp");
                     exit(errno);
                 }
@@ -73,24 +73,24 @@ int invoke_node(node_t *node) {
             /* Pipe execution (Tasks 3 and A) */
             int file_discriptor[2];
             int status3_1 = pipe(file_discriptor);
-            if(status3_1 == -1){
+            if (status3_1 == -1) {
                 perror("pipe");
                 return errno;
             }
             int status3_2;
             fflush(stdout);
             pid_t pid3_1 = fork();
-            if(pid3_1 == 0){
+            if (pid3_1 == 0) {
                 // child process1
                 dup2(file_discriptor[1], 1);
                 close(file_discriptor[0]);
                 close(file_discriptor[1]);
                 status3_2 = execvp(node->lhs->argv[0], node->lhs->argv);
-                if(status3_2 == -1){
+                if (status3_2 == -1) {
                     perror("execvp");
                     exit(errno);
                 }
-            } else if(pid3_1 == -1){
+            } else if (pid3_1 == -1) {
                 perror("fork");
                 return errno;
             } else {
@@ -100,18 +100,17 @@ int invoke_node(node_t *node) {
 
                 fflush(stdout);
                 pid_t pid3_2 = fork();
-                if(pid3_2 == 0){
+                if (pid3_2 == 0) {
                     // child process2
                     dup2(file_discriptor[0], 0);
                     close(file_discriptor[0]);
                     close(file_discriptor[1]);
                     status3_2 = execvp(node->rhs->argv[0], node->rhs->argv);
-                    if(status3_2 == -1){
+                    if (status3_2 == -1) {
                         perror("execvp");
                         exit(errno);
                     }
-                }
-                else if(pid3_2 == -1){
+                } else if (pid3_2 == -1) {
                     perror("fork");
                     return errno;
                 } else {
@@ -125,13 +124,88 @@ int invoke_node(node_t *node) {
             }
             break;
 
-        case N_REDIRECT_IN:     /* foo < bar */
-        case N_REDIRECT_OUT:    /* foo > bar */
+        case N_REDIRECT_IN: /* foo < bar */
+            LOG("node->filename: %s", node->filename);
+            int status4_IN;
+            fflush(stdout);
+            pid_t pid4_IN = fork();
+            if (pid4_IN == 0) {
+                int fd = open(node->filename, O_RDONLY);
+                if (fd == -1) {
+                    perror("open");
+                    exit(errno);
+                }
+                dup2(fd, 0);
+                close(fd);
+                status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
+                if (status4_IN == -1) {
+                    perror("execvp");
+                    exit(errno);
+                }
+            } else if (pid4_IN == -1) {
+                perror("fork");
+                return errno;
+            } else {
+                waitpid(pid4_IN, &status4_IN, 0);
+                return status4_IN;
+            }
+            break;
+        case N_REDIRECT_OUT: /* foo > bar */
+            LOG("node->filename: %s", node->filename);
+
+            int status4_OUT;
+            fflush(stdout);
+            pid_t pid4_OUT = fork();
+            if (pid4_OUT == 0) {
+                int fd = open(node->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                if (fd == -1) {
+                    perror("open");
+                    exit(errno);
+                }
+                dup2(fd, 1);
+                close(fd);
+                status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
+                if (status4_OUT == -1) {
+                    perror("execvp");
+                    exit(errno);
+                }
+            } else if (pid4_OUT == -1) {
+                perror("fork");
+                return errno;
+            } else {
+                waitpid(pid4_OUT, &status4_OUT, 0);
+                return status4_OUT;
+            }
+            break;
+
         case N_REDIRECT_APPEND: /* foo >> bar */
             LOG("node->filename: %s", node->filename);
 
             /* Redirection (Task 4) */
+            int status4;
+            fflush(stdout);
+            pid_t pid4 = fork();
+            if (pid4 == 0) {
+                int fd = open(node->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+                if (fd == -1) {
+                    perror("open");
+                    exit(errno);
+                }
+                dup2(fd, 1);
+                close(fd);
 
+                status4 = execvp(node->argv[0], node->argv);
+                if (status4 == -1) {
+                    perror("execvp");
+                    exit(errno);
+                }
+            } else if (pid4 == -1) {
+                perror("fork");
+                return errno;
+            } else {
+                waitpid(pid4, &status4, 0);
+                return status4;
+            }
             break;
 
         case N_SEQUENCE: /* foo ; bar */
@@ -148,11 +222,29 @@ int invoke_node(node_t *node) {
             break;
 
         case N_AND: /* foo && bar */
-        case N_OR:  /* foo || bar */
+            LOG("node->lhs: %s", inspect_node(node->lhs));
+            LOG("node->rhs: %s", inspect_node(node->rhs));
+
+            int statusB_AND;
+            statusB_AND = invoke_node(node->lhs);
+            if (statusB_AND == 0) {
+                statusB_AND = invoke_node(node->rhs);
+            }
+            return statusB_AND;
+
+            break;
+
+        case N_OR: /* foo || bar */
             LOG("node->lhs: %s", inspect_node(node->lhs));
             LOG("node->rhs: %s", inspect_node(node->rhs));
 
             /* Branching (Task B) */
+            int statusB_OR;
+            statusB_OR = invoke_node(node->lhs);
+            if (statusB_OR != 0) {
+                statusB_OR = invoke_node(node->rhs);
+            }
+            return statusB_OR;
 
             break;
 
