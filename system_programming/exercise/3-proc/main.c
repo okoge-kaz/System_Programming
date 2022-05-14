@@ -33,6 +33,8 @@ int invoke_node(node_t *node) {
     switch (node->type) {
         case N_COMMAND:
             /* change directory (cd with no argument is not supported.) */
+            LOG("Command: %s", inspect_node(node));
+
             if (strcmp(node->argv[0], "cd") == 0) {
                 if (node->argv[1] == NULL) {
                     return 0;  // do nothing
@@ -154,20 +156,25 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 0);
                 close(fd);
-                if (node->lhs->lhs == NULL) {
-                    status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
-                    if (status4_IN == -1) {
-                        perror("execvp");
-                        exit(errno);
-                    }
-                } else {
-                    status4_IN = invoke_node(node->lhs);
-                    if (status4_IN == -1) {
-                        perror("invoke_node");
-                        exit(errno);
-                    }
-                    exit(status4_IN);
+                status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
+                if (status4_IN == -1) {
+                    perror("execvp");
+                    exit(errno);
                 }
+                // if (node->lhs->lhs == NULL) {
+                //     status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
+                //     if (status4_IN == -1) {
+                //         perror("execvp");
+                //         exit(errno);
+                //     }
+                // } else {
+                //     status4_IN = invoke_node(node->lhs);
+                //     if (status4_IN == -1) {
+                //         perror("invoke_node");
+                //         exit(errno);
+                //     }
+                //     exit(status4_IN);
+                // }
             } else if (pid4_IN == -1) {
                 perror("fork");
                 return errno;
@@ -191,20 +198,25 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 1);
                 close(fd);
-                if (node->lhs->lhs == NULL) {
-                    status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
-                    if (status4_OUT == -1) {
-                        perror("execvp");
-                        exit(errno);
-                    }
-                } else {
-                    status4_OUT = invoke_node(node->lhs);
-                    if (status4_OUT == -1) {
-                        perror("invoke_node");
-                        exit(errno);
-                    }
-                    exit(status4_OUT);
+                status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
+                if (status4_OUT == -1) {
+                    perror("execvp");
+                    exit(errno);
                 }
+                // if (node->lhs->lhs == NULL) {
+                //     status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
+                //     if (status4_OUT == -1) {
+                //         perror("execvp");
+                //         exit(errno);
+                //     }
+                // } else {
+                //     status4_OUT = invoke_node(node->lhs);
+                //     if (status4_OUT == -1) {
+                //         perror("invoke_node");
+                //         exit(errno);
+                //     }
+                //     exit(status4_OUT);
+                // }
             } else if (pid4_OUT == -1) {
                 perror("fork");
                 return errno;
@@ -231,20 +243,25 @@ int invoke_node(node_t *node) {
                 dup2(fd, 1);
                 close(fd);
 
-                if (node->lhs->lhs == NULL) {
-                    status4_APPEND = execvp(node->lhs->argv[0], node->lhs->argv);
-                    if (status4_APPEND == -1) {
-                        perror("execvp");
-                        exit(errno);
-                    }
-                } else {
-                    status4_APPEND = invoke_node(node->lhs);
-                    if (status4_APPEND == -1) {
-                        perror("invoke_node");
-                        exit(errno);
-                    }
-                    exit(status4_APPEND);
+                status4_APPEND = execvp(node->lhs->argv[0], node->lhs->argv);
+                if (status4_APPEND == -1) {
+                    perror("execvp");
+                    exit(errno);
                 }
+                // if (node->lhs->lhs == NULL) {
+                //     status4_APPEND = execvp(node->lhs->argv[0], node->lhs->argv);
+                //     if (status4_APPEND == -1) {
+                //         perror("execvp");
+                //         exit(errno);
+                //     }
+                // } else {
+                //     status4_APPEND = invoke_node(node->lhs);
+                //     if (status4_APPEND == -1) {
+                //         perror("invoke_node");
+                //         exit(errno);
+                //     }
+                //     exit(status4_APPEND);
+                // }
             } else if (pid4 == -1) {
                 perror("fork");
                 return errno;
