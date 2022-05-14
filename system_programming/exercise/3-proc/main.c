@@ -71,7 +71,40 @@ int invoke_node(node_t *node) {
             LOG("node->rhs: %s", inspect_node(node->rhs));
 
             /* Pipe execution (Tasks 3 and A) */
-            
+            int file_discriptor[2];
+            int status3_1 = pipe(file_discriptor);
+            if(status3_1 == -1){
+                perror("pipe");
+                return errno;
+            }
+            int status3_2;
+            fflush(stdout);
+            pid_t pid3 = fork();
+            if(pid3 == 0){
+                // child process
+                close(file_discriptor[0]);
+                dup2(file_discriptor[1], 1);
+                close(file_discriptor[1]);
+                status3_2 = execvp(node->lhs->argv[0], node->lhs->argv);
+                if(status3_2 == -1){
+                    perror("execvp");
+                    exit(errno);
+                }
+            } else if(pid3 == -1){
+                perror("fork");
+                return errno;
+            } else {
+                // parent process
+                waitpid(pid3, &status3_2, 0);
+                close(file_discriptor[1]);
+                dup2(file_discriptor[0], 0);
+                close(file_discriptor[0]);
+                int status3_3 = execvp(node->rhs->argv[0], node->rhs->argv);
+                if(status3_3 == -1){
+                    perror("execvp");
+                    exit(errno);
+                }
+            }
             break;
 
         case N_REDIRECT_IN:     /* foo < bar */
