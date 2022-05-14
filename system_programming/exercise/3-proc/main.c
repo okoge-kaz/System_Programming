@@ -105,11 +105,25 @@ int invoke_node(node_t *node) {
                     dup2(file_discriptor[0], 0);
                     close(file_discriptor[0]);
                     close(file_discriptor[1]);
-                    status3_2 = execvp(node->rhs->argv[0], node->rhs->argv);
-                    if (status3_2 == -1) {
-                        perror("execvp");
-                        exit(errno);
+                    if(node->rhs->lhs == NULL){
+                        status3_2 = execvp(node->rhs->argv[0], node->rhs->argv);
+                        if (status3_2 == -1) {
+                            perror("execvp");
+                            exit(errno);
+                        }
+                    } else {
+                        status3_2 = invoke_node(node->rhs);
+                        if (status3_2 == -1) {
+                            perror("invoke_node");
+                            exit(errno);
+                        }
+                        exit(status3_2);
                     }
+                    // status3_2 = execvp(node->rhs->argv[0], node->rhs->argv);
+                    // if (status3_2 == -1) {
+                    //     perror("execvp");
+                    //     exit(errno);
+                    // }
                 } else if (pid3_2 == -1) {
                     perror("fork");
                     return errno;
