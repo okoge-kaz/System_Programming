@@ -315,7 +315,19 @@ int invoke_node(node_t *node) {
             LOG("node->lhs: %s", inspect_node(node->lhs));
 
             /* Subshell execution (Task C) */
-
+            int statusC;
+            fflush(stdout);
+            pid_t pidC = fork();
+            if (pidC == 0) {
+                statusC = invoke_node(node->lhs);
+                _exit(statusC);
+            } else if (pidC == -1) {
+                perror("fork");
+                return errno;
+            } else {
+                waitpid(pidC, &statusC, 0);
+                return statusC;
+            }
             break;
 
         default:
