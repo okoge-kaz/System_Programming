@@ -56,7 +56,6 @@ int invoke_node(node_t *node) {
                     perror("execvp");
                     exit(errno);
                 }
-                // exit(status1);
             } else if (pid1 == -1) {
                 perror("fork");
                 return errno;
