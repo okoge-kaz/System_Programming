@@ -102,9 +102,6 @@ int invoke_node(node_t *node) {
                 return errno;
             } else {
                 // parent process
-                // waitpid(pid3_1, &status3_1, 0);
-                // ここでwaitpidしない理由が不明
-
                 fflush(stdout);
                 pid_t pid3_2 = fork();
                 if (pid3_2 == 0) {
@@ -155,11 +152,7 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 0);
                 close(fd);
-                // status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
-                // if (status4_IN == -1) {
-                //     perror("execvp");
-                //     exit(errno);
-                // }
+
                 if (node->lhs->lhs == NULL) {
                     status4_IN = execvp(node->lhs->argv[0], node->lhs->argv);
                     if (status4_IN == -1) {
@@ -197,11 +190,7 @@ int invoke_node(node_t *node) {
                 }
                 dup2(fd, 1);
                 close(fd);
-                // status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
-                // if (status4_OUT == -1) {
-                //     perror("execvp");
-                //     exit(errno);
-                // }
+
                 if (node->lhs->lhs == NULL) {
                     status4_OUT = execvp(node->lhs->argv[0], node->lhs->argv);
                     if (status4_OUT == -1) {
@@ -242,11 +231,6 @@ int invoke_node(node_t *node) {
                 dup2(fd, 1);
                 close(fd);
 
-                // status4_APPEND = execvp(node->lhs->argv[0], node->lhs->argv);
-                // if (status4_APPEND == -1) {
-                //     perror("execvp");
-                //     exit(errno);
-                // }
                 if (node->lhs->lhs == NULL) {
                     status4_APPEND = execvp(node->lhs->argv[0], node->lhs->argv);
                     if (status4_APPEND == -1) {
