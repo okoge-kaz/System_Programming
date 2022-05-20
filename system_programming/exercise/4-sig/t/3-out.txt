@@ -1,0 +1,13 @@
+ttsh[1]> echo bar
+bar
+FIRE
+ttsh[2]> ./count 5 A
+A-3 A-2 A-1 Z... FIRE
+ttsh[3]> ./count 10 B &
+ttsh[4]> ./count 5 C &
+ttsh[5]> echo foo
+foo
+FIRE
+ttsh[6]> C-3 C-2 C-1 Z... FIRE
+B-3 B-2 B-1 Z... FIRE
+^D

@@ -1,0 +1,17 @@
+./count 10 A
+!sleep 2
+!kill TSTP
+!sleep 1
+!break
+!sleep 1
+echo Hello_World!
+!sleep 3
+fg
+!sleep 11
+./count 10 B
+!sleep 2
+!kill TSTP
+!sleep 2
+bg
+!sleep 11
+!eof

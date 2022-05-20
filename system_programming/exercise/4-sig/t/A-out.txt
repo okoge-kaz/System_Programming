@@ -1,0 +1,11 @@
+ttsh[1]> ./count 10 A
+^Zttsh[2]> 
+ttsh[3]> echo Hello_World!
+Hello_World!
+FIRE
+ttsh[4]> fg
+A-3 A-2 A-1 Z... FIRE
+ttsh[5]> ./count 10 B
+^Zttsh[6]> bg
+ttsh[7]> B-3 B-2 B-1 Z... FIRE
+^D

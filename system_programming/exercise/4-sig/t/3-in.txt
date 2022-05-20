@@ -1,0 +1,11 @@
+echo bar
+!sleep 1
+./count 5 A
+!sleep 6
+./count 10 B &
+!sleep 1
+./count 5 C &
+!sleep 1
+echo foo
+!sleep 11
+!eof
