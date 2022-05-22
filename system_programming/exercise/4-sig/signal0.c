@@ -4,23 +4,19 @@
 #include <unistd.h> /* write */
 volatile int always_true;
 
-void handler1(int sig) {
-    signal(SIGINT, handler1);
-    return;
-}
 
-void handler2(int sig) {
-    signal(SIGALRM, handler2);
+void handler(int sig) {
+    signal(SIGALRM, handler);
     fprintf(stderr, "*");
     alarm(5);
 }
 
 int main() {
     /* Exercise 1: Implement here. */
-    signal(SIGINT, handler1);
+    signal(SIGINT, SIG_IGN);
     /* Exercise 2: Implement here. */
     alarm(5);
-    signal(SIGALRM, handler2);
+    signal(SIGALRM, handler);
 
     /* Prints dots. */
     always_true = rand() >= 0;
