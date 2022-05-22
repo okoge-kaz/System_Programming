@@ -5,10 +5,12 @@
 volatile int always_true;
 
 void handler1(int sig) {
+    signal(SIGINT, handler1);
     return;
 }
 
 void handler2(int sig) {
+    signal(SIGALRM, handler2);
     fprintf(stderr, "*");
     alarm(5);
 }
