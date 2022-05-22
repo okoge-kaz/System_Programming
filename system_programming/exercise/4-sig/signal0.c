@@ -1,14 +1,24 @@
 #include <signal.h> /* signal */
+#include <stdio.h>  /* printf */
 #include <stdlib.h> /* exit */
 #include <unistd.h> /* write */
-
 volatile int always_true;
+
+void handler1(int sig) {
+    return;
+}
+
+void handler2(int sig) {
+    fprintf(stderr, "*");
+    alarm(5);
+}
 
 int main() {
     /* Exercise 1: Implement here. */
-
+    signal(SIGINT, handler1);
     /* Exercise 2: Implement here. */
-    // alarm(5);
+    alarm(5);
+    signal(SIGALRM, handler2);
 
     /* Prints dots. */
     always_true = rand() >= 0;
