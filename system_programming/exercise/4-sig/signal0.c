@@ -1,9 +1,8 @@
 #include <signal.h> /* signal */
-#include <unistd.h> /* write */
 #include <stdlib.h> /* exit */
+#include <unistd.h> /* write */
 
 volatile int always_true;
-
 
 int main() {
     /* Exercise 1: Implement here. */

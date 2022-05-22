@@ -1,14 +1,15 @@
 #include "main.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h> /* kill, signal */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <signal.h> /* kill, signal */
 
 /** The max characters of one cmdline (incl. NULL terminator) */
 #define MAX_LINE 8192
@@ -35,13 +36,10 @@ char *chomp(char *line) {
     return line;
 }
 
-
-
 /** Run a node and obtain an exit status. */
 int invoke_node(node_t *node) {
     LOG("Invoke: %s", inspect_node(node));
     pid_t pid;
-
 
     // Checks whether the command is executed with '&'
     if (node->async) {
@@ -61,7 +59,6 @@ int invoke_node(node_t *node) {
 
     // assign an independent process group
     if (setpgid(pid, pid) == -1) PERROR_DIE("setpgid");
-
 
     // wait a child process
     int status;
@@ -83,16 +80,16 @@ void parse_options(int argc, char **argv) {
     int opt;
     while ((opt = getopt(argc, argv, "qp")) != -1) {
         switch (opt) {
-        case 'q': /* -q: quiet */
-            l_set_quiet(1);
-            break;
-        case 'p': /* -p: no-prompt */
-            show_prompt = 0;
-            break;
-        case '?':
-        default:
-            fprintf(stderr, "Usage: %s [-q] [-p] [cmdline ...]\n", argv[0]);
-            exit(EXIT_FAILURE);
+            case 'q': /* -q: quiet */
+                l_set_quiet(1);
+                break;
+            case 'p': /* -p: no-prompt */
+                show_prompt = 0;
+                break;
+            case '?':
+            default:
+                fprintf(stderr, "Usage: %s [-q] [-p] [cmdline ...]\n", argv[0]);
+                exit(EXIT_FAILURE);
         }
     }
     if (getenv("NO_EMOJI") != NULL) {
