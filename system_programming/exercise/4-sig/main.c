@@ -35,6 +35,19 @@ char *chomp(char *line) {
     if (p) *p = '\0';
     return line;
 }
+void handler(int sig) {
+    signal(SIGALRM, handler);
+
+    pid_t waited_pid = waitpid(-1, NULL, WNOHANG);
+    if (waited_pid == -1) {
+        if (errno != ECHILD && errno != EINTR) {
+            int result = write(STDERR_FILENO, fire, strlen(fire));
+            if (result == -1) PERROR_DIE("write");
+        }
+        int result = write(STDERR_FILENO, fire, strlen(fire));
+        if (result == -1) PERROR_DIE("write");
+    }
+}
 
 /** Run a node and obtain an exit status. */
 int invoke_node(node_t *node) {
@@ -44,6 +57,14 @@ int invoke_node(node_t *node) {
     // Checks whether the command is executed with '&'
     if (node->async) {
         LOG("{&} found: async execution required");
+        pid_t pid = fork();
+        signal(SIGCHLD, handler);
+        if (pid == 0) {
+            // Child process
+            if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
+            return 0; /* never happen */
+        }
+        return 0;
     }
 
     // generates a child process
