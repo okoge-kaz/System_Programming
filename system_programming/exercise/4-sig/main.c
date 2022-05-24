@@ -29,6 +29,8 @@ bool streql(const char *lhs, const char *rhs) {
            (lhs != NULL && rhs != NULL && strcmp(lhs, rhs) == 0);
 }
 
+pid_t stop_pid;
+
 /** Erase line break characters */
 char *chomp(char *line) {
     char *p = strchr(line, '\n');
@@ -51,10 +53,45 @@ void handler(int sig) {
     }
 }
 
+void sig_handler(int sig) {
+    if (sig == SIGTSTP) {
+        kill(getpid(), SIGTSTP);
+        return;
+    }
+}
+
 /** Run a node and obtain an exit status. */
 int invoke_node(node_t *node) {
     LOG("Invoke: %s", inspect_node(node));
     pid_t pid;
+
+    if (strcmp(node->argv[0], "fg") == 0) {
+        if (node->argv[1] == NULL) {
+            kill(stop_pid, SIGCONT);
+            return 0;
+        } else {
+            perror("fg: too many arguments");
+            exit(1);
+        }
+    }
+
+    if (strcmp(node->argv[0], "bg") == 0) {
+        if (node->argv[1] == NULL) {
+            pid = fork();
+            signal(SIGCHLD, handler);
+            if (pid == 0) {
+                kill(stop_pid, SIGCONT);
+                exit(0);
+            } else if (pid == -1) {
+                perror("fork");
+                exit(1);
+            }
+            return 0;
+        } else {
+            perror("bg: too many arguments");
+            exit(1);
+        }
+    }
 
     // Checks whether the command is executed with '&'
     if (node->async) {
@@ -77,6 +114,8 @@ int invoke_node(node_t *node) {
 
     if (pid == 0) {
         // child
+        signal(SIGTSTP, sig_handler);
+        stop_pid = pid;
         if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
         return 0; /* never happen */
     }
@@ -86,7 +125,7 @@ int invoke_node(node_t *node) {
 
     // wait a child process
     int status;
-    int options = 0;
+    int options = WUNTRACED;
     pid_t waited_pid = waitpid(pid, &status, options);
     if (waited_pid == -1) {
         if (errno != ECHILD) PERROR_DIE("waitpid");
