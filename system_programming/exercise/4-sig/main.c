@@ -42,7 +42,7 @@ pid_t stopped_target_pid;
 void sigint_handler(int signum) {
     pid_t pid;
     int status;
-  
+
     switch (signum) {
         case SIGINT:
             printf("\n");
@@ -59,10 +59,10 @@ void sigint_handler(int signum) {
                     if (errno == EINTR) continue;  // interrupted by signal
                     exit(1);                       // error
                 }
-              if (WIFEXITED(status)) {
-                int result = write(STDERR_FILENO, fire, strlen(fire));
-                if (result == -1) PERROR_DIE("write");
-              }
+                if (WIFEXITED(status)) {
+                    int result = write(STDERR_FILENO, fire, strlen(fire));
+                    if (result == -1) PERROR_DIE("write");
+                }
             }
             break;
         default:
@@ -75,7 +75,6 @@ void sigint_handler(int signum) {
 int invoke_node(node_t *node) {
     LOG("Invoke: %s", inspect_node(node));
     pid_t pid;
-    
 
     if (strcmp(node->argv[0], "fg") == 0) {
         if (node->argv[1] == NULL) {
