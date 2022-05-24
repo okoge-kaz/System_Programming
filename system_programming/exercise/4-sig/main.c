@@ -37,11 +37,12 @@ char *chomp(char *line) {
 }
 
 pid_t stop_target_pid;
-int status;
+pid_t stopped_target_pid;
 
 void sigint_handler(int signum) {
     pid_t pid;
-
+    int status;
+  
     switch (signum) {
         case SIGINT:
             printf("\n");
@@ -49,6 +50,7 @@ void sigint_handler(int signum) {
             break;
         case SIGTSTP:
             kill(stop_target_pid, SIGTSTP);
+            stopped_target_pid = stop_target_pid;
             break;
         case SIGCHLD:
             while ((pid = waitpid(-1, &status, WNOHANG)) != 0) {
@@ -57,10 +59,10 @@ void sigint_handler(int signum) {
                     if (errno == EINTR) continue;  // interrupted by signal
                     exit(1);                       // error
                 }
-            }
-            if (WIFEXITED(status)) {
+              if (WIFEXITED(status)) {
                 int result = write(STDERR_FILENO, fire, strlen(fire));
                 if (result == -1) PERROR_DIE("write");
+              }
             }
             break;
         default:
@@ -73,13 +75,11 @@ void sigint_handler(int signum) {
 int invoke_node(node_t *node) {
     LOG("Invoke: %s", inspect_node(node));
     pid_t pid;
-
-    signal(SIGCHLD, sigint_handler);
-    signal(SIGTSTP, sigint_handler);
+    
 
     if (strcmp(node->argv[0], "fg") == 0) {
         if (node->argv[1] == NULL) {
-            kill(stop_target_pid, SIGCONT);
+            kill(stopped_target_pid, SIGCONT);
             return 0;
         } else {
             perror("fg: too many arguments");
@@ -89,10 +89,10 @@ int invoke_node(node_t *node) {
 
     if (strcmp(node->argv[0], "bg") == 0) {
         if (node->argv[1] == NULL) {
-            pid = fork();
             signal(SIGCHLD, sigint_handler);
+            pid = fork();
             if (pid == 0) {
-                kill(stop_target_pid, SIGCONT);
+                kill(stopped_target_pid, SIGCONT);
                 exit(0);
             } else if (pid == -1) {
                 perror("fork");
@@ -108,6 +108,7 @@ int invoke_node(node_t *node) {
     // Checks whether the command is executed with '&'
     if (node->async) {
         LOG("{&} found: async execution required");
+        signal(SIGCHLD, sigint_handler);
         pid = fork();
         if (pid == 0) {
             if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
@@ -127,6 +128,7 @@ int invoke_node(node_t *node) {
     if (pid == 0) {
         // child
         stop_target_pid = getpid();
+        signal(SIGTSTP, sigint_handler);
         if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
         return 0; /* never happen */
     }
