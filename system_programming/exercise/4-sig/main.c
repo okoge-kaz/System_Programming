@@ -37,10 +37,11 @@ char *chomp(char *line) {
 }
 
 pid_t stop_target_pid;
+int status;
 
 void sigint_handler(int signum) {
     pid_t pid;
-    int status;
+
     switch (signum) {
         case SIGINT:
             printf("\n");
@@ -72,6 +73,7 @@ void sigint_handler(int signum) {
 int invoke_node(node_t *node) {
     LOG("Invoke: %s", inspect_node(node));
     pid_t pid;
+
     signal(SIGCHLD, sigint_handler);
     signal(SIGTSTP, sigint_handler);
 
@@ -134,7 +136,7 @@ int invoke_node(node_t *node) {
 
     // wait a child process
     int status;
-    int options = 0;
+    int options = WUNTRACED;
     pid_t waited_pid = waitpid(pid, &status, options);
     if (waited_pid == -1) {
         if (errno != ECHILD) PERROR_DIE("waitpid");
