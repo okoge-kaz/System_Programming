@@ -36,6 +36,37 @@ char *chomp(char *line) {
     return line;
 }
 
+void sigint_handler(int signum) {
+    pid_t pid;
+    int status;
+    switch (signum) {
+        case SIGINT:
+            printf("\n");
+            show_prompt = 1;
+            break;
+        case SIGTSTP:
+            printf("\n");
+            show_prompt = 1;
+            break;
+        case SIGCHLD:
+            while ((pid = waitpid(-1, &status, WNOHANG)) != 0) {
+                if (pid == -1) {
+                    if (errno == ECHILD) break;    // no child processes
+                    if (errno == EINTR) continue;  // interrupted by signal
+                    exit(1);                       // error
+                }
+            }
+            if (WIFEXITED(status)) {
+                int result = write(STDERR_FILENO, fire, strlen(fire));
+                if (result == -1) PERROR_DIE("write");
+            }
+            break;
+        default:
+            break;
+    }
+    return;
+}
+
 /** Run a node and obtain an exit status. */
 int invoke_node(node_t *node) {
     LOG("Invoke: %s", inspect_node(node));
@@ -44,6 +75,16 @@ int invoke_node(node_t *node) {
     // Checks whether the command is executed with '&'
     if (node->async) {
         LOG("{&} found: async execution required");
+        signal(SIGCHLD, sigint_handler);
+        pid = fork();
+        if (pid == 0) {
+            if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
+            return 0; /* never happen */
+        } else if (pid == -1) {
+            PERROR_DIE("fork");
+        } else {
+            return 0;
+        }
     }
 
     // generates a child process
