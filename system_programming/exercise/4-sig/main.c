@@ -38,12 +38,14 @@ char *chomp(char *line) {
 void handler(int sig) {
     pid_t waited_pid;
     while ((waited_pid = waitpid(-1, NULL, WNOHANG)) != 0) {
+        // 任意の子プロセスを待つ
         if (waited_pid == -1) {
-            if (errno == ECHILD) break;
-            if(errno == EINTR) continue;
+            if (errno == ECHILD) break;    // 子プロセスがない
+            if (errno == EINTR) continue;  // シグナルによる中断 -> やり直し
             perror("waitpid");
             exit(1);
         }
+        // ゾンビを回収するから fire
         int result = write(STDERR_FILENO, fire, strlen(fire));
         if (result == -1) PERROR_DIE("write");
     }
@@ -62,8 +64,9 @@ int invoke_node(node_t *node) {
         if (pid == 0) {
             // Child process
             if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
-            return 0; /* never happen */
+            return 0;  // unreachable
         }
+        // Parent process
         return 0;
     }
 
