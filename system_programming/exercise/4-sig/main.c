@@ -55,7 +55,8 @@ void handler(int sig) {
 
 void sig_handler(int sig) {
     if (sig == SIGTSTP) {
-        kill(getpid(), SIGTSTP);
+        stop_pid = getpid();
+        kill(stop_pid, SIGTSTP);
         return;
     }
 }
@@ -115,7 +116,6 @@ int invoke_node(node_t *node) {
     if (pid == 0) {
         // child
         signal(SIGTSTP, sig_handler);
-        stop_pid = pid;
         if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
         return 0; /* never happen */
     }
