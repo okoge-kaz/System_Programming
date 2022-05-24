@@ -53,11 +53,37 @@ void handler(int sig) {
     }
 }
 
-void sig_handler(int sig) {
-    if (sig == SIGTSTP) {
-        stop_pid = getpid();
-        kill(stop_pid, SIGTSTP);
-        return;
+
+pid_t stop_target_pid;
+
+void sigint_handler(int signum) {
+    pid_t pid;
+    int status = -1;
+
+    switch (signum) {
+        case SIGINT:
+            printf("\n");
+            show_prompt = 1;
+            break;
+        case SIGTSTP:
+            kill(stop_target_pid, SIGTSTP);
+            break;
+        case SIGCHLD:
+            while ((pid = waitpid(-1, &status, WNOHANG)) != 0) {
+                if (pid == -1) {
+                    if (errno == ECHILD) break;    // no child processes
+                    if (errno == EINTR) continue;  // interrupted by signal
+                    exit(1);                       // error
+                }
+                if (WIFEXITED(status)) {// child exited normally
+                    int result = write(STDERR_FILENO, fire, strlen(fire));
+                    if (result == -1) PERROR_DIE("write");
+                }
+            }
+            break;
+        default:
+            break;
+
     }
 }
 
@@ -68,7 +94,7 @@ int invoke_node(node_t *node) {
 
     if (strcmp(node->argv[0], "fg") == 0) {
         if (node->argv[1] == NULL) {
-            kill(stop_pid, SIGCONT);
+
             return 0;
         } else {
             perror("fg: too many arguments");
@@ -79,7 +105,7 @@ int invoke_node(node_t *node) {
     if (strcmp(node->argv[0], "bg") == 0) {
         if (node->argv[1] == NULL) {
             pid = fork();
-            signal(SIGCHLD, handler);
+
             if (pid == 0) {
                 kill(stop_pid, SIGCONT);
                 exit(0);
@@ -174,6 +200,9 @@ int invoke_line(char *line) {
 }
 
 int main(int argc, char **argv) {
+    signal(SIGCHLD, sigint_handler);
+    signal(SIGTSTP, sigint_handler);
+
     parse_options(argc, argv);
     if (optind < argc) {
         /* Execute each cmdline in the arguments if exists */
