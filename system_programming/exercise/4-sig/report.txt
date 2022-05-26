@@ -3,13 +3,13 @@
 ### 課題Nの回答は，### ExerciseN ### のコメント行の下の領域に記述して下さい．
 
 ### ID ### 学籍番号を nnBnnnnn のように書いて下さい
-
+20B30790
 
 ### Email ### mメールアドレスを書いて下さい
-
+fujii.k.ao@m.titech.ac.jp
 
 ### Name ### 氏名を「東工 太郎」のように書いて下さい
-
+藤井一喜
 
 ### Env ### 演習実施環境（OSとその上でのUNIX環境）を明らかにして下さい
 ### 例：repl.it
@@ -18,28 +18,40 @@
 ### 例：macOS 10.15 on Intel Mac
 ### 例：macOS 10.16 on M1 Mac
 ### 例：Ubuntu Linux 20.04
-
+macOS  12.4 on Intel Mac
 
 ### Exercise1 ### 課題1
 ### ^Cを打っても止まらない様子を実演し，その入出力結果（^Cを明示すること）を貼り付けましょう．
 
-
+❯ ./signal0
+....*.....*..^C^C.^C^C.^C^C^C.^C*^C....^C.*.^C..^\zsh: quit       ./signal0
 
 ### Exercise2 ### 課題2
 ### 実行を適当なところで止め，実行結果を貼り付けましょう．
 
-
+❯ ./signal0
+....*.....*.....*.....*.....*..
 
 ### Exercise3 ### 課題3
 ### 実装完了したことを示すための適当な入出力結果を貼り付けましょう（./main -q で実行，ttshプロンプトを含む）．
 ### 未完成部分がある場合は明示して下さい．
 
-
+❯ ./main -q
+ttsh[1] 🐦 ./count 5
+3 2 1 🧟 🔥
+ttsh[2] 🐦 ./count 20 &
+ttsh[3] 🐦 ./count 10 &
+ttsh[4] 🐦 echo foo
+foo
+🔥
+ttsh[5] 🐦 3 2 1 🧟 🔥
+3 2 1 🧟 🔥
 
 ### Exercise3-test ###
 ### make test3 の結果を貼り付けましょう．
 
-
+❯ make test3
+✅  OK 🎉 [3-count] env NO_EMOJI=1 ruby pty.rb ./main -q < t/3-in.txt 
 
 ### ExerciseA ### 発展課題A
 ### 実装完了したことを示すための適当な入出力結果を貼り付けましょう（./main -q で実行，ttshプロンプトを含む）．

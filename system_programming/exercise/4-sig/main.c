@@ -38,6 +38,7 @@ char *chomp(char *line) {
 
 pid_t stop_target_pid;
 pid_t stopped_target_pid;
+const int SIG_STOP = -(1LL << 30);
 
 void sigint_handler(int signum) {
     pid_t pid;
@@ -45,14 +46,19 @@ void sigint_handler(int signum) {
 
     switch (signum) {
         case SIGINT:
+            LOG("SIGINT received\n");
             printf("\n");
             show_prompt = 1;
             break;
         case SIGTSTP:
+            if(stop_target_pid == SIG_STOP) break;
+            LOG("SIGTSTP received\n");
             kill(stop_target_pid, SIGTSTP);
             stopped_target_pid = stop_target_pid;
+            stop_target_pid = SIG_STOP;
             break;
         case SIGCHLD:
+            LOG("SIGCHLD received\n");
             while ((pid = waitpid(-1, &status, WNOHANG)) != 0) {
                 if (pid == -1) {
                     if (errno == ECHILD) break;    // no child processes
@@ -66,6 +72,7 @@ void sigint_handler(int signum) {
             }
             break;
         default:
+            LOG("Unknown signal received\n");
             break;
     }
     return;
@@ -127,7 +134,6 @@ int invoke_node(node_t *node) {
     if (pid == 0) {
         // child
         stop_target_pid = getpid();
-        signal(SIGTSTP, sigint_handler);
         if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
         return 0; /* never happen */
     }
@@ -136,6 +142,8 @@ int invoke_node(node_t *node) {
     if (setpgid(pid, pid) == -1) PERROR_DIE("setpgid");
 
     // wait a child process
+    signal(SIGTSTP, sigint_handler);
+
     int status;
     int options = WUNTRACED;
     pid_t waited_pid = waitpid(pid, &status, options);
