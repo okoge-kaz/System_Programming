@@ -114,8 +114,8 @@ int invoke_node(node_t *node) {
     // Checks whether the command is executed with '&'
     if (node->async) {
         LOG("{&} found: async execution required");
-        signal(SIGCHLD, sigint_handler);
         pid = fork();
+        signal(SIGCHLD, sigint_handler);
         if (pid == 0) {
             if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
             return 0; /* never happen */
