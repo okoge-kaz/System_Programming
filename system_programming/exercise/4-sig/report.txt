@@ -57,15 +57,29 @@ ttsh[5] 🐦 3 2 1 🧟 🔥
 ### 実装完了したことを示すための適当な入出力結果を貼り付けましょう（./main -q で実行，ttshプロンプトを含む）．
 ### 未完成部分がある場合は明示して下さい．
 
-
+シグナルの転送がうまくできなかった。
+stop_target_pidという変数を用いてどうにか、無限にsigint_handlerが呼び出されることを防止しているが、根本的な解決にはなっていない。
+kill(pid, SIGTSTP)してもそれがsigint_handlerを呼ばないようにする仕組みが思いつかなったため、このような結果になっている。
 
 ### ExerciseA-test ###
 ### make testA の結果を貼り付けて下さい．
 
-
+ttsh[1]> ./count 10 A
+^Z
+echo Hello_World!
+fg
+A-3 A-2 A-1 Z... FIRE
+ttsh[2]> ttsh[3]> Hello_World!
+FIRE
+ttsh[4]> ttsh[5]> ./count 10 B
+^Zbg
+B-3 B-2 B-1 Z... FIRE
+ttsh[6]> ttsh[7]> FIRE
+^D
+--- exit status: 0
 
 ### Comment ### 感想（採点対象外，好きに書いて下さい．）
 
-
+かなり時間をかけたが、Aができなかった...くやしい
 
 ### END ###
