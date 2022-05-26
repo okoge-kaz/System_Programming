@@ -51,10 +51,10 @@ void sigint_handler(int signum) {
             show_prompt = 1;
             break;
         case SIGTSTP:
-            if(stop_target_pid == SIG_STOP) break;
+            if (stop_target_pid == SIG_STOP) break;
             LOG("SIGTSTP received\n");
+            LOG("Stopping %d\n", stop_target_pid);
             kill(stop_target_pid, SIGTSTP);
-            stopped_target_pid = stop_target_pid;
             stop_target_pid = SIG_STOP;
             break;
         case SIGCHLD:
@@ -127,6 +127,7 @@ int invoke_node(node_t *node) {
     }
 
     // generates a child process
+
     fflush(stdout);
     pid = fork();
     if (pid == -1) PERROR_DIE("fork");
@@ -134,6 +135,7 @@ int invoke_node(node_t *node) {
     if (pid == 0) {
         // child
         stop_target_pid = getpid();
+        LOG("Child process: %d", stop_target_pid);
         if (execvp(node->argv[0], node->argv) == -1) PERROR_DIE("execvp");
         return 0; /* never happen */
     }
@@ -142,13 +144,15 @@ int invoke_node(node_t *node) {
     if (setpgid(pid, pid) == -1) PERROR_DIE("setpgid");
 
     // wait a child process
-    signal(SIGTSTP, sigint_handler);
 
     int status;
     int options = WUNTRACED;
     pid_t waited_pid = waitpid(pid, &status, options);
     if (waited_pid == -1) {
         if (errno != ECHILD) PERROR_DIE("waitpid");
+    } else if (WIFSTOPPED(status)) {
+        LOG("Child process %d stopped", pid);
+        stopped_target_pid = pid;
     } else {
         LOG("Waited: target_pid=%d, raw_stat=%d, stat=%d", waited_pid, status, WEXITSTATUS(status));
         if (WIFEXITED(status)) {
