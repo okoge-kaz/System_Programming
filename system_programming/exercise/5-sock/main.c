@@ -120,10 +120,6 @@ void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
     // fprintf(fout, "\r\n");
     if (strcmp(method, "GET") == 0) {
         char *fname = uri;
-        LOG("fname %s", fname);
-        LOG("uri %s", uri);
-        if (strcmp(fname, "/") == 0)
-            fname = "index.html";
         if (strcmp(get_extension(fname), "cgi") == 0) {
             LOG("Executing CGI script '%s'", fname);
             char *argv[] = {fname, NULL};
