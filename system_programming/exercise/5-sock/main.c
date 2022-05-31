@@ -206,8 +206,15 @@ void serve() {
         int connfd = accept(listfd, (struct sockaddr *)&caddr, &addrlen);
         if (connfd == -1)
             PERROR_DIE("accept");
-
-        do_session(connfd, inet_ntoa(caddr.sin_addr), ntohs(caddr.sin_port));
+        
+        pid_t pid = fork();
+        if (pid == -1)
+            PERROR_DIE("fork");
+        if (pid == 0) {
+            do_session(connfd, inet_ntoa(caddr.sin_addr), ntohs(caddr.sin_port));
+        }
+        // do_session(connfd, inet_ntoa(caddr.sin_addr), ntohs(caddr.sin_port));
+        close(connfd);
     }
 }
 
