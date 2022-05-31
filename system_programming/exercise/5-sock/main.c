@@ -1,4 +1,5 @@
 #include "main.h"
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <signal.h>
@@ -89,7 +90,6 @@ void send_404(FILE *fout) {
                      "<title>404 Not Found</title><h1>404 Not Found</h1>\n");
 }
 
-
 void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
     char line[4096], method[1024], uri[1024], version[1024];
 
@@ -111,13 +111,66 @@ void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
     }
 
     // default behavior; you can rewrite these lines
-    fprintf(fout, "HTTP/1.0 200 OK\r\n");
-    fprintf(fout, "Content-Type: text/html\r\n");
-    fprintf(fout, "\r\n");
-    fprintf(fout, "<title>httpd</title>\r\n");
-    fprintf(fout, "<p>Client: %s:%d</p>\r\n", caddr, cport);
-    fprintf(fout, "<p>Request line: <samp>%s %s %s</samp></p>\r\n", method, uri, version);
-    fprintf(fout, "\r\n");
+    // fprintf(fout, "HTTP/1.0 200 OK\r\n");
+    // fprintf(fout, "Content-Type: text/html\r\n");
+    // fprintf(fout, "\r\n");
+    // fprintf(fout, "<title>httpd</title>\r\n");
+    // fprintf(fout, "<p>Client: %s:%d</p>\r\n", caddr, cport);
+    // fprintf(fout, "<p>Request line: <samp>%s %s %s</samp></p>\r\n", method, uri, version);
+    // fprintf(fout, "\r\n");
+    if (strcmp(method, "GET") == 0) {
+        char *fname = uri;
+        LOG("fname %s", fname);
+        LOG("uri %s", uri);
+        if (strcmp(fname, "/") == 0)
+            fname = "index.html";
+        if (strcmp(get_extension(fname), "cgi") == 0) {
+            LOG("Executing CGI script '%s'", fname);
+            char *argv[] = {fname, NULL};
+            if (fork() == 0) {
+                dup2(fd, 1);
+                dup2(fd, 2);
+                close(fd);
+                execv(fname, argv);
+                exit(1);
+            }
+            wait(NULL);
+        } else {
+            if (strcmp(fname, "/\0") == 0)
+                fname = "index.html";
+            char path[1034] = "./docroot/";
+            strcat(path, fname);
+            LOG("Serving file '%s'", path);
+
+            if (!exists_file(path)) {
+                LOG("File '%s' not found", path);
+                send_404(fout);
+                return;
+            }
+            // if (!is_file_executable(path)) {
+            //     LOG("File '%s' is not executable", path);
+            //     send_404(fout);
+            //     return;
+            // }
+            LOG("Sending file '%s'", path);
+            FILE *f = fopen(path, "r");
+            if (f == NULL) {
+                LOG("Failed to open file '%s'", path);
+                send_404(fout);
+                return;
+            }
+            char *ext = get_extension(fname);
+            char *content_type = get_content_type(ext);
+            fprintf(fout, "HTTP/1.0 200 OK\r\n");
+            fprintf(fout, "Content-Type: %s\r\n", content_type);
+            fprintf(fout, "\r\n");
+            send_stream(fout, f);
+            fclose(f);
+        }
+    } else {
+        LOG("Unsupported method '%s'", method);
+        send_404(fout);
+    }
 }
 
 void do_session(int fd, char *caddr, int cport) {
@@ -166,18 +219,18 @@ void parse_options(int argc, char **argv) {
     int opt;
     while ((opt = getopt(argc, argv, "qp:")) != -1) {
         switch (opt) {
-        case 'q': /* -q: quiet */
-            l_set_quiet(1);
-            break;
-        case 'p': /* -p N: port number */
-            port = atoi(optarg);
-            if (port <= 0)
-                DIE("Invalid port number");
-            break;
-        case '?':
-        default:
-            fprintf(stderr, "Usage: %s [-q] [-p port]\n", argv[0]);
-            exit(EXIT_FAILURE);
+            case 'q': /* -q: quiet */
+                l_set_quiet(1);
+                break;
+            case 'p': /* -p N: port number */
+                port = atoi(optarg);
+                if (port <= 0)
+                    DIE("Invalid port number");
+                break;
+            case '?':
+            default:
+                fprintf(stderr, "Usage: %s [-q] [-p port]\n", argv[0]);
+                exit(EXIT_FAILURE);
         }
     }
 }
