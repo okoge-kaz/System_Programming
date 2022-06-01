@@ -120,22 +120,36 @@ void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
     // fprintf(fout, "\r\n");
     if (strcmp(method, "GET") == 0) {
         char *fname = uri;
+        if (strcmp(fname, "/\0") == 0)
+                fname = "/index.html";
+            char path[1034] = "./docroot";
+            strcat(path, fname);
         if (strcmp(get_extension(fname), "cgi") == 0) {
-            LOG("Executing CGI script '%s'", fname);
-            char *argv[] = {fname, NULL};
-            if (fork() == 0) {
+            if (!exists_file(path)) {
+                LOG("File '%s' not found", path);
+                send_404(fout);
+                return;
+            }
+            if(is_file_executable(fname) != 0) {
+                LOG("File %s is not executable.", fname);
+                send_404(fout);
+                return;
+            }
+            LOG("Executing CGI script '%s'", path);
+            fprintf(fout, "HTTP/1.0 200 OK\r\n");
+            char *argv[] = {path, NULL};
+            fflush(fout);
+            pid_t pid = fork();
+            if (pid == 0){
                 dup2(fd, 1);
                 dup2(fd, 2);
                 close(fd);
-                execv(fname, argv);
+                execv(path, argv);
                 exit(1);
             }
-            wait(NULL);
+            waitpid(pid, NULL, 0);
+            return;
         } else {
-            if (strcmp(fname, "/\0") == 0)
-                fname = "index.html";
-            char path[1034] = "./docroot/";
-            strcat(path, fname);
             LOG("Serving file '%s'", path);
 
             if (!exists_file(path)) {
@@ -143,11 +157,6 @@ void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
                 send_404(fout);
                 return;
             }
-            // if (!is_file_executable(path)) {
-            //     LOG("File '%s' is not executable", path);
-            //     send_404(fout);
-            //     return;
-            // }
             LOG("Sending file '%s'", path);
             FILE *f = fopen(path, "r");
             if (f == NULL) {
