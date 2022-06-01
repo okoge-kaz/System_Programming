@@ -113,16 +113,16 @@ void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
     if (strcmp(method, "GET") == 0) {
         char *fname = uri;
         if (strcmp(fname, "/\0") == 0)
-                fname = "/index.html";
-            char path[1034] = "./docroot";
-            strcat(path, fname);
+            fname = "/index.html";
+        char path[1034] = "./docroot";
+        strcat(path, fname);
         if (strcmp(get_extension(fname), "cgi") == 0) {
             if (!exists_file(path)) {
                 LOG("File '%s' not found", path);
                 send_404(fout);
                 return;
             }
-            if(is_file_executable(fname) != 0) {
+            if (is_file_executable(fname) != 0) {
                 LOG("File %s is not executable.", fname);
                 send_404(fout);
                 return;
@@ -132,7 +132,7 @@ void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
             char *argv[] = {path, NULL};
             fflush(fout);
             pid_t pid = fork();
-            if (pid == 0){
+            if (pid == 0) {
                 dup2(fd, 1);
                 dup2(fd, 2);
                 close(fd);
@@ -207,7 +207,7 @@ void serve() {
         int connfd = accept(listfd, (struct sockaddr *)&caddr, &addrlen);
         if (connfd == -1)
             PERROR_DIE("accept");
-        
+
         pid_t pid = fork();
         if (pid == -1)
             PERROR_DIE("fork");
