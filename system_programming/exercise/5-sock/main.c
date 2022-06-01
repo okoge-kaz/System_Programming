@@ -110,14 +110,6 @@ void session(int fd, FILE *fout, FILE *fin, char *caddr, int cport) {
         LOG("[Header] %s", chomp(line));
     }
 
-    // default behavior; you can rewrite these lines
-    // fprintf(fout, "HTTP/1.0 200 OK\r\n");
-    // fprintf(fout, "Content-Type: text/html\r\n");
-    // fprintf(fout, "\r\n");
-    // fprintf(fout, "<title>httpd</title>\r\n");
-    // fprintf(fout, "<p>Client: %s:%d</p>\r\n", caddr, cport);
-    // fprintf(fout, "<p>Request line: <samp>%s %s %s</samp></p>\r\n", method, uri, version);
-    // fprintf(fout, "\r\n");
     if (strcmp(method, "GET") == 0) {
         char *fname = uri;
         if (strcmp(fname, "/\0") == 0)
@@ -222,7 +214,6 @@ void serve() {
         if (pid == 0) {
             do_session(connfd, inet_ntoa(caddr.sin_addr), ntohs(caddr.sin_port));
         }
-        // do_session(connfd, inet_ntoa(caddr.sin_addr), ntohs(caddr.sin_port));
         close(connfd);
     }
 }
