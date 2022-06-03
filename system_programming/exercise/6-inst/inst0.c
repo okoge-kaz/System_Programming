@@ -10,12 +10,12 @@ const char *addr2name(void* address) {
 
 __attribute__((no_instrument_function))
 void __cyg_profile_func_enter(void *addr, void *site_call) {
-    // printf(">>> %s (%p)\n", addr2name(addr), addr);
+    printf(">>> %s (%p)\n", addr2name(addr), addr);
 }
 
 __attribute__((no_instrument_function))
 void __cyg_profile_func_exit(void *addr, void *site_call) {
-    // printf("<<< %s (%p)\n", addr2name(addr), addr);
+    printf("<<< %s (%p)\n", addr2name(addr), addr);
 }
 
 void foo(void);

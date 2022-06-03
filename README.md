@@ -15,3 +15,6 @@ Explain shell commands
 
 - [Fig](https://fig.io/)   
 Fig adds IDE-style autocomplete to your existing terminal. Move faster with Fig.
+
+## tmux
+

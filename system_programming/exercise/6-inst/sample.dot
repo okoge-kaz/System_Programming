@@ -1,0 +1,6 @@
+strict digraph G {
+  a -> b;
+  a -> c;
+  c -> d;
+  c -> d;
+}

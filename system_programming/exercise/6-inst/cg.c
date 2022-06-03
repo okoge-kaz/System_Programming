@@ -34,12 +34,16 @@ void __cyg_profile_func_enter(void *addr, void *call_site) {
     
     /* You are encouraged to remove this default stupid implementation and
        write code from scratch. */
+    LOG("LOG start\n");
+    LOG(">>> %s (%p)\n", addr2name(addr), addr);
+    LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
+    LOG("LOG end\n");
+
+    
     FILE *f = fopen("cg.dot", "w");
     if (f != NULL) {
         fprintf(f, "strict digraph G {\n");
-        fprintf(f, "  L -> hoge -> \"<\";\n");
-        fprintf(f, "  \"' - '\" -> hoge;\n");
-        fprintf(f, "  R -> hoge -> \">\";\n");
+        fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
         fprintf(f, "}\n");
         fclose(f);
     }
@@ -48,4 +52,13 @@ void __cyg_profile_func_enter(void *addr, void *call_site) {
 __attribute__((no_instrument_function))
 void __cyg_profile_func_exit(void *addr, void *call_site) {
     /* Not Yet Implemented */
+}
+
+int isFileExist(const char *fileName) {
+    FILE *fp = fopen(fileName, "r");
+    if (fp == NULL) {
+        return 0;
+    }
+    fclose(fp);
+    return 1;
 }
