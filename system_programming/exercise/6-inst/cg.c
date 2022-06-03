@@ -28,10 +28,73 @@ addr2name(void *address) {
     return dli.dli_sname;
 }
 int seen = 0;
+char *branches[MAX_CALLS];
+int cnt[MAX_CALLS];
+int i = 0;
+
+int is_new(const char *name) {
+    for (int j = 0; j < i; j++) {
+        if (strcmp(name, branches[j]) == 0) {
+            cnt[j]++;
+            return 0;
+        }
+    }
+    cnt[i] = 1;
+    return 1;
+}
 
 void final_bracket(void) {
-    FILE *f = fopen("cg.dot", "a");
+    char *label = getenv("SYSPROG_LABEL");
+
+    FILE *ifp = fopen("cg.dot", "r");
+    char buf[1024];
+    char *result[MAX_CALLS * MAX_DEPTH];
+    int index = 0;
+
+    while (fgets(buf, sizeof(buf), ifp) != NULL) {
+        if (strstr(buf, "}") != NULL) {
+            // } があった
+            fclose(ifp);
+            FILE *ofp = fopen("cg.dot", "w");
+            for (int k = 0; k < index; k++) {
+                fprintf(ofp, "%s", result[k]);
+            }
+            // fprintf(ofp, "}\n");
+            fclose(ofp);
+            break;
+        }
+        if (strstr(buf, "__cxa_finalize_ranges -> final_bracket") != NULL) continue;
+        result[index] = strdup(buf);
+        index++;
+    }
+    fclose(ifp);
+
+    FILE *f = fopen("cg.dot", "w");
     if (f != NULL) {
+        for (int k = 0; k < index; k++) {
+            fprintf(f, "%s", result[k]);
+        }
+        fprintf(f, "}\n");
+        fclose(f);
+    }
+    if (label != NULL) {
+        // 発展課題A
+        FILE *fp = fopen("cg", "r");
+        if (fp != NULL) {
+            char line[1024];
+            while (fgets(line, sizeof(line), fp) != NULL) {
+                if (is_new(line) == 1) {
+                    branches[i] = strdup(line);
+                    i++;
+                }
+            }
+            fclose(fp);
+        }
+        FILE *f = fopen("cg.dot", "w");
+        fprintf(f, "strict digraph G {\n");
+        for (int j = 0; j < i; j++) {
+            fprintf(f, "%s\" [label=\"%d\"]\n", branches[j], cnt[j]);
+        }
         fprintf(f, "}\n");
         fclose(f);
     }
@@ -45,38 +108,6 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr
     LOG("call %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
-    char *label = getenv("SYSPROG_LABEL");
-    if (label != NULL) {
-        // 発展課題A
-        if (strcmp(addr2name(addr), "main") == 0) {
-            // main関数での呼び出し
-            LOG("call_site is null\n");
-            FILE *f = fopen("cg.dot", "w");
-            if (f != NULL) {
-                fprintf(f, "strict digraph G {\n");
-                fclose(f);
-            }
-        } else {
-            if (strcmp(addr2name(call_site), "main") == 0 && seen == 0) {
-                // main関数からの呼び出し
-                LOG("call_site is main\n");
-                seen = 1;
-                atexit(final_bracket);
-                FILE *f = fopen("cg.dot", "a");
-                if (f != NULL) {
-                    fprintf(f, "%s -> %s[label=%s]\n", addr2name(call_site), addr2name(addr), label);
-                    fclose(f);
-                }
-            } else {
-                FILE *f = fopen("cg.dot", "a");
-                if (f != NULL) {
-                    fprintf(f, "%s -> %s[label=%s]\n", addr2name(call_site), addr2name(addr), label);
-                    fclose(f);
-                }
-            }
-        }
-        return;
-    }
     if (strcmp(addr2name(addr), "main") == 0) {
         // main関数での呼び出し
         LOG("call_site is null\n");
@@ -115,6 +146,11 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_exit(void *addr,
     LOG("call %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
+    char *label = getenv("SYSPROG_LABEL");
+    if (label != NULL) {
+        // 発展課題A
+        return;
+    }
     if (strcmp(addr2name(addr), "main") == 0) {
         FILE *f = fopen("cg.dot", "a");
         if (f != NULL) {
