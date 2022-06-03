@@ -48,32 +48,9 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr
                 fclose(f);
             }
         } else {
-            FILE *ifp = fopen("cg.dot", "r");
-            char buf[4096];
-            char *file_data[MAX_CALLS * 2 + 1];
-            int n = 0;
-
-            if (ifp != NULL) {
-                while (fgets(buf, sizeof(buf), ifp) != NULL) {
-                    if (strstr(buf, "}\n") != NULL) {
-                        LOG("}\n");
-                        continue;
-                    }
-                    file_data[n] = strdup(buf);
-                    LOG("file_data: %s", file_data[n]);
-                    n++;
-                }
-                fclose(ifp);
-            }
-            FILE *ofp = fopen("cg.dot", "w");
-            for (int i = 0; i < n; i++) {
-                fprintf(ofp, "%s", file_data[i]);
-            }
-            fclose(ofp);
             FILE *f = fopen("cg.dot", "a");
             if (f != NULL) {
                 fprintf(f, "%s -> %s[label=%s]\n", addr2name(call_site), addr2name(addr), label);
-                fprintf(f, "}\n");
                 fclose(f);
             }
         }
@@ -89,33 +66,10 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr
             fclose(f);
         }
     } else {
-        FILE *ifp = fopen("cg.dot", "r");
-        char buf[4096];
-        char *file_data[MAX_CALLS * 2 + 1];
-        int n = 0;
-
-        if (ifp != NULL) {
-            while (fgets(buf, sizeof(buf), ifp) != NULL) {
-                if (strstr(buf, "}\n") != NULL) {
-                    LOG("}\n");
-                    continue;
-                }
-                file_data[n] = strdup(buf);
-                LOG("file_data: %s", file_data[n]);
-                n++;
-            }
-            fclose(ifp);
-        }
-        FILE *ofp = fopen("cg.dot", "w");
-        for (int i = 0; i < n; i++) {
-            fprintf(ofp, "%s", file_data[i]);
-        }
-        fclose(ofp);
         // 書き足し
         FILE *f = fopen("cg.dot", "a");
         if (f != NULL) {
             fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
-            fprintf(f, "}\n");
             fclose(f);
         }
     }
@@ -128,11 +82,11 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_exit(void *addr,
     LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
-    // if (strcmp(addr2name(addr), "main") == 0) {
-    //     FILE *f = fopen("cg.dot", "a");
-    //     if (f != NULL) {
-    //         fprintf(f, "}\n");
-    //         fclose(f);
-    //     }
-    // }
+    if (strcmp(addr2name(addr), "main") == 0) {
+        FILE *f = fopen("cg.dot", "a");
+        if (f != NULL) {
+            fprintf(f, "}\n");
+            fclose(f);
+        }
+    }
 }
