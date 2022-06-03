@@ -26,7 +26,7 @@
 <title>main&#45;&gt;foo</title>
 <path fill="none" stroke="black" d="M63,-173.8C63,-162.16 63,-146.55 63,-133.24"/>
 <polygon fill="black" stroke="black" points="66.5,-133.18 63,-123.18 59.5,-133.18 66.5,-133.18"/>
-<text text-anchor="middle" x="66.5" y="-144.8" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="66.5" y="-144.8" font-family="Times,serif" font-size="14.00">2</text>
 </g>
 <!-- bar -->
 <g id="node3" class="node">
@@ -39,7 +39,7 @@
 <title>foo&#45;&gt;bar</title>
 <path fill="none" stroke="black" d="M55.89,-87.21C50.78,-75.14 43.79,-58.64 37.97,-44.89"/>
 <polygon fill="black" stroke="black" points="41.1,-43.31 33.98,-35.47 34.65,-46.04 41.1,-43.31"/>
-<text text-anchor="middle" x="51.5" y="-57.8" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="51.5" y="-57.8" font-family="Times,serif" font-size="14.00">2</text>
 </g>
 <!-- baz -->
 <g id="node4" class="node">
@@ -52,7 +52,7 @@
 <title>foo&#45;&gt;baz</title>
 <path fill="none" stroke="black" d="M70.11,-87.21C75.22,-75.14 82.21,-58.64 88.03,-44.89"/>
 <polygon fill="black" stroke="black" points="91.35,-46.04 92.02,-35.47 84.9,-43.31 91.35,-46.04"/>
-<text text-anchor="middle" x="86.5" y="-57.8" font-family="Times,serif" font-size="14.00">1</text>
+<text text-anchor="middle" x="86.5" y="-57.8" font-family="Times,serif" font-size="14.00">2</text>
 </g>
 </g>
 </svg>

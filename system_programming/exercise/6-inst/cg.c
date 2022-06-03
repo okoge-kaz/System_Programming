@@ -27,19 +27,13 @@ addr2name(void *address) {
     }
     return dli.dli_sname;
 }
+
 int seen = 0;
 char *branches[MAX_CALLS];
 int cnt[MAX_CALLS];
-int i = 0;
+int n = 1;
 
 int is_new(const char *name) {
-    for (int j = 0; j < i; j++) {
-        if (strcmp(name, branches[j]) == 0) {
-            cnt[j]++;
-            return 0;
-        }
-    }
-    cnt[i] = 1;
     return 1;
 }
 
@@ -59,7 +53,6 @@ void final_bracket(void) {
             for (int k = 0; k < index; k++) {
                 fprintf(ofp, "%s", result[k]);
             }
-            // fprintf(ofp, "}\n");
             fclose(ofp);
             break;
         }
@@ -79,21 +72,58 @@ void final_bracket(void) {
     }
     if (label != NULL) {
         // 発展課題A
-        FILE *fp = fopen("cg", "r");
+        FILE *fp = fopen("cg.dot", "r");
         if (fp != NULL) {
             char line[1024];
             while (fgets(line, sizeof(line), fp) != NULL) {
-                if (is_new(line) == 1) {
-                    branches[i] = strdup(line);
-                    i++;
+                int is_new = 0;
+                LOG("line: %s", line);
+                int index_of_line = 0;
+                while(1){
+                    // 改行文字を消去
+                    if (line[index_of_line] == '\n') {
+                        line[index_of_line] = '\0';
+                        break;
+                    }
+                    index_of_line++;
+                }
+                
+                for (int j = 0; j < n; j++) {
+                    if(strcmp(line, "strict digraph G {") == 0) {
+                        break;
+                    }
+                    if(strcmp(line, "}") == 0) {
+                        break;
+                    }
+                    if(branches[j] == NULL){
+                        is_new = 1;
+                        break;
+                    }
+                    if (strstr(line, branches[j]) != NULL) {
+                        cnt[j]++;
+                        break;
+                    }
+                    if (j == n - 1) {
+                        is_new = 1;
+                    }
+                }
+                
+                if (is_new == 1) {
+                    LOG("branches[%d] = %s", n, line);
+                    branches[n-1] = strdup(line);
+                    cnt[n-1] = 1;
+                    n++;
                 }
             }
             fclose(fp);
         }
         FILE *f = fopen("cg.dot", "w");
         fprintf(f, "strict digraph G {\n");
-        for (int j = 0; j < i; j++) {
-            fprintf(f, "%s\" [label=\"%d\"]\n", branches[j], cnt[j]);
+        for (int j = 0; j < n; j++) {
+            if (branches[j] == NULL) {
+                break;
+            }
+            fprintf(f, "%s [label=%d]\n", branches[j], cnt[j]);
         }
         fprintf(f, "}\n");
         fclose(f);
@@ -146,11 +176,6 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_exit(void *addr,
     LOG("call %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
-    char *label = getenv("SYSPROG_LABEL");
-    if (label != NULL) {
-        // 発展課題A
-        return;
-    }
     if (strcmp(addr2name(addr), "main") == 0) {
         FILE *f = fopen("cg.dot", "a");
         if (f != NULL) {
