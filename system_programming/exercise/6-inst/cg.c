@@ -27,13 +27,19 @@ const char *addr2name(void* address) {
     return dli.dli_sname;
 }
 
+int is_file_exist(const char *path) {
+    FILE *fp = fopen(path, "r");
+    if (fp == NULL) {
+        return 0;
+    }
+    fclose(fp);
+    return 1;
+}
 
 __attribute__((no_instrument_function))
 void __cyg_profile_func_enter(void *addr, void *call_site) {
     /* Not Yet Implemented */
     
-    /* You are encouraged to remove this default stupid implementation and
-       write code from scratch. */
     LOG("LOG start\n");
     LOG(">>> %s (%p)\n", addr2name(addr), addr);
     LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
