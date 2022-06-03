@@ -1,3 +1,8 @@
 strict digraph G {
+main -> foo
+foo -> bar
+foo -> baz
+main -> foo
+foo -> bar
 foo -> baz
 }

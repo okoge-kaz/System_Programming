@@ -3,12 +3,12 @@
 #include <stdarg.h> /* va_list */
 #include <stdio.h>  /* printf */
 #include <stdlib.h> /* atexit, getenv */
+#include <string.h> /* strcmp */
 
 #define MAX_DEPTH 32
 #define MAX_CALLS 1024
 
-__attribute__((no_instrument_function))
-int log_to_stderr(const char *file, int line, const char *func, const char *format, ...) {
+__attribute__((no_instrument_function)) int log_to_stderr(const char *file, int line, const char *func, const char *format, ...) {
     char message[4096];
     va_list va;
     va_start(va, format);
@@ -19,7 +19,8 @@ int log_to_stderr(const char *file, int line, const char *func, const char *form
 #define LOG(...) log_to_stderr(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 __attribute__((no_instrument_function))
-const char *addr2name(void* address) {
+const char *
+addr2name(void *address) {
     Dl_info dli;
     if (dladdr(address, &dli) == 0) {
         return NULL;
@@ -27,44 +28,45 @@ const char *addr2name(void* address) {
     return dli.dli_sname;
 }
 
-int is_file_exist(const char *path) {
-    FILE *fp = fopen(path, "r");
-    if (fp == NULL) {
-        return 0;
-    }
-    fclose(fp);
-    return 1;
-}
-
-__attribute__((no_instrument_function))
-void __cyg_profile_func_enter(void *addr, void *call_site) {
+__attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr, void *call_site) {
     /* Not Yet Implemented */
-    
+
     LOG("LOG start\n");
     LOG(">>> %s (%p)\n", addr2name(addr), addr);
     LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
-    
-    FILE *f = fopen("cg.dot", "w");
-    if (f != NULL) {
-        fprintf(f, "strict digraph G {\n");
-        fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
-        fprintf(f, "}\n");
-        fclose(f);
+    if (strcmp(addr2name(addr), "main") == 0) {
+        // main関数での呼び出し
+        LOG("call_site is null\n");
+        FILE *f = fopen("cg.dot", "w");
+        if (f != NULL) {
+            fprintf(f, "strict digraph G {\n");
+            // fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
+            fclose(f);
+        }
+    } else {
+        // 書き足し
+        FILE *f = fopen("cg.dot", "a");
+        if (f != NULL) {
+            fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
+            fclose(f);
+        }
     }
 }
 
-__attribute__((no_instrument_function))
-void __cyg_profile_func_exit(void *addr, void *call_site) {
+__attribute__((no_instrument_function)) void __cyg_profile_func_exit(void *addr, void *call_site) {
     /* Not Yet Implemented */
-}
+    LOG("LOG start\n");
+    LOG(">>> %s (%p)\n", addr2name(addr), addr);
+    LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
+    LOG("LOG end\n");
 
-int isFileExist(const char *fileName) {
-    FILE *fp = fopen(fileName, "r");
-    if (fp == NULL) {
-        return 0;
+    if (strcmp(addr2name(addr), "main") == 0) {
+        FILE *f = fopen("cg.dot", "a");
+        if (f != NULL) {
+            fprintf(f, "}\n");
+            fclose(f);
+        }
     }
-    fclose(fp);
-    return 1;
 }
