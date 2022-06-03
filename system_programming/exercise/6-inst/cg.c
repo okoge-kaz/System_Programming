@@ -36,6 +36,27 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr
     LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
+    char *label = getenv("SYSPROG_LABEL");
+    if (label != NULL) {
+        // 発展課題A
+        if (strcmp(addr2name(addr), "main") == 0) {
+            // main関数での呼び出し
+            LOG("call_site is null\n");
+            FILE *f = fopen("cg.dot", "w");
+            if (f != NULL) {
+                fprintf(f, "strict digraph G {\n");
+                fclose(f);
+            }
+        } else {
+            // 書き足し
+            FILE *f = fopen("cg.dot", "a");
+            if (f != NULL) {
+                fprintf(f, "%s -> %s[label=%s]\n", addr2name(call_site), addr2name(addr), label);
+                fclose(f);
+            }
+        }
+        return;
+    }
     if (strcmp(addr2name(addr), "main") == 0) {
         // main関数での呼び出し
         LOG("call_site is null\n");
