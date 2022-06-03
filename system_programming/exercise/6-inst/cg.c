@@ -27,13 +27,22 @@ addr2name(void *address) {
     }
     return dli.dli_sname;
 }
+int seen = 0;
+
+void final_bracket(void) {
+    FILE *f = fopen("cg.dot", "a");
+    if (f != NULL) {
+        fprintf(f, "}\n");
+        fclose(f);
+    }
+    return;
+}
 
 __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr, void *call_site) {
     /* Not Yet Implemented */
-
     LOG("LOG start\n");
-    LOG(">>> %s (%p)\n", addr2name(addr), addr);
-    LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
+    LOG("addr %s (%p)\n", addr2name(addr), addr);
+    LOG("call %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
     char *label = getenv("SYSPROG_LABEL");
@@ -48,10 +57,22 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr
                 fclose(f);
             }
         } else {
-            FILE *f = fopen("cg.dot", "a");
-            if (f != NULL) {
-                fprintf(f, "%s -> %s[label=%s]\n", addr2name(call_site), addr2name(addr), label);
-                fclose(f);
+            if (strcmp(addr2name(call_site), "main") == 0 && seen == 0) {
+                // main関数からの呼び出し
+                LOG("call_site is main\n");
+                seen = 1;
+                atexit(final_bracket);
+                FILE *f = fopen("cg.dot", "a");
+                if (f != NULL) {
+                    fprintf(f, "%s -> %s[label=%s]\n", addr2name(call_site), addr2name(addr), label);
+                    fclose(f);
+                }
+            } else {
+                FILE *f = fopen("cg.dot", "a");
+                if (f != NULL) {
+                    fprintf(f, "%s -> %s[label=%s]\n", addr2name(call_site), addr2name(addr), label);
+                    fclose(f);
+                }
             }
         }
         return;
@@ -66,11 +87,23 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr
             fclose(f);
         }
     } else {
-        // 書き足し
-        FILE *f = fopen("cg.dot", "a");
-        if (f != NULL) {
-            fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
-            fclose(f);
+        if (strcmp(addr2name(call_site), "main") == 0 && seen == 0) {
+            // main関数からの呼び出し
+            LOG("call_site is main\n");
+            seen = 1;
+            atexit(final_bracket);
+            FILE *f = fopen("cg.dot", "a");
+            if (f != NULL) {
+                fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
+                fclose(f);
+            }
+        } else {
+            // 書き足し
+            FILE *f = fopen("cg.dot", "a");
+            if (f != NULL) {
+                fprintf(f, "%s -> %s\n", addr2name(call_site), addr2name(addr));
+                fclose(f);
+            }
         }
     }
 }
@@ -78,8 +111,8 @@ __attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *addr
 __attribute__((no_instrument_function)) void __cyg_profile_func_exit(void *addr, void *call_site) {
     /* Not Yet Implemented */
     LOG("LOG start\n");
-    LOG(">>> %s (%p)\n", addr2name(addr), addr);
-    LOG(">>> %s (%p)\n", addr2name(call_site), call_site);
+    LOG("addr %s (%p)\n", addr2name(addr), addr);
+    LOG("call %s (%p)\n", addr2name(call_site), call_site);
     LOG("LOG end\n");
 
     if (strcmp(addr2name(addr), "main") == 0) {
